@@ -10,7 +10,7 @@ add_executable(Red main.cpp
     redneuronal.h redneuronal.cpp)
 
 include(GNUInstallDirs)
-install(TARGETS Backpropagation
+install(TARGETS Red
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
