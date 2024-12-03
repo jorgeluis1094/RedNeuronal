@@ -54,7 +54,7 @@ RedNeuronal::RedNeuronal(int* arquitecturaRed, int* numCapas){
  * Salida:
  *      No genera salida, crea una red bajo los parámetros de ingreso
  */
-RedNeuronal::RedNeuronal(std::string string_arqRed, std::string pesosRed)
+RedNeuronal::RedNeuronal(std::string string_arqRed, std::string pesosRed, std::string string_biasRed)
 {
     std::ifstream ReadmyFile(string_arqRed);
     //Si no lee correctamente el archivo informa de un error
@@ -79,6 +79,20 @@ RedNeuronal::RedNeuronal(std::string string_arqRed, std::string pesosRed)
     }
     ReadmyFile.close();
 
+
+    ReadmyFile.open(string_biasRed);
+    double *biasRed = new double[numCapas-1];
+    i=0;
+    while(getline(ReadmyFile, line,',')){
+        *(biasRed+i) = stod(line);
+        i++;
+
+        //std::cout<<line<<" ";
+    }
+    ReadmyFile.close();
+
+
+
     this->arquitecturaRed = arqRed;
     this->numCapas = numCapas;
     this->num_Matriz_W = numCapas-1;
@@ -91,6 +105,7 @@ RedNeuronal::RedNeuronal(std::string string_arqRed, std::string pesosRed)
     //PreDiligenciar_a(); //asignar memoria pasa matriz a
 
     cargarRed(pesosRed);
+    this->b = biasRed;
 
 }
 
@@ -208,15 +223,29 @@ void RedNeuronal::Prediccion(double* X)
  */
 void RedNeuronal::propagacion_Adelante()
 {
-    for(int k=0; k<numCapas-1; k++)
+
+    // borrar  a
+    for(int i=1; i<this->numCapas; i++)
     {
-        for(int i=0; i<arquitecturaRed[k+1]; i++) //fila
+        for (int j=0; j<this->arquitecturaRed[i]; j++)
+            a[i][j]=0;;
+    }
+
+    for(int k=1; k<numCapas; k++) //capa
+    {
+        for(int i=0; i<arquitecturaRed[k]; i++) //fila
         {
-            for(int j=0; j<arquitecturaRed[k]; j++) //columna
-                a[k+1][i] += a[k][j]*W[k][j][i];
-            a[k+1][i] = logistic_Func(a[k+1][i] + b[k]);
+            for(int j=0; j<arquitecturaRed[k-1]; j++) //columna
+            {
+                a[k][i] += a[k-1][j]*W[k-1][j][i];
+                //std::cout<<a[k+1][i]<<"+="<<a[k][j]<<"*"<<W[k][j][i]<<std::endl;
+            }
+            a[k][i] = logistic_Func(a[k][i] + b[k-1]);
+            //std::cout<<a[k+1][i]<<"= logistic("<<a[k+1][i]<<"+"<<b[k]<<" )"<<std::endl;
         }
     }
+
+
 }
 
 /*
@@ -275,6 +304,8 @@ void RedNeuronal::Entrenamiento(double* entradaRed, double* salidaRed, double al
         }
 
         propagacion_Adelante();
+
+        //Mostrar_Pesos_Red();
         Error = 0;
     }
 
@@ -314,10 +345,11 @@ double RedNeuronal::Error()
 /*
  * Guarda la arquitectura y pesos de una red entrenada
  */
-void RedNeuronal::guardarRed()
+void RedNeuronal::guardarRed(std::string ruta)
 {
-    std::ofstream arqRed("arqRed.txt");
-    std::ofstream pesosRed("pesosRed.txt");
+    std::ofstream arqRed(ruta+"arqRed.txt");
+    std::ofstream pesosRed(ruta+"pesosRed.txt");
+    std::ofstream biasRed(ruta+"biasRed.txt");
 
     for(int i=0; i<numCapas;i++){
         arqRed<<this->arquitecturaRed[i];
@@ -325,13 +357,20 @@ void RedNeuronal::guardarRed()
             arqRed << ","; // No comma at end of line
     }
 
-    // Imprimir matrices W
+    // Guardar bias
+    for(int i=0; i<numCapas-1;i++){
+        biasRed<<this->b[i];
+        if(i != numCapas - 2)
+            biasRed << ","; // No comma at end of line
+    }
+
+    // Guardar pesos W
     for(int k=0; k<num_Matriz_W; k++){
         for(int i=0; i<arquitecturaRed[k]; i++){ //row
             for(int j=0; j<arquitecturaRed[k+1]; j++){ //col
                 pesosRed<<this->W[k][i][j]<<",";
                 //if(j != arquitecturaRed[k+1] - 1)
-                //    pesosRed << ","; // No comma at end of line
+                //        pesosRed << ","; // No comma at end of line
             }
             pesosRed<<std::endl;
         }
@@ -340,6 +379,7 @@ void RedNeuronal::guardarRed()
     // Close the file
     pesosRed.close();
     arqRed.close();
+    biasRed.close();
 }
 
 /*

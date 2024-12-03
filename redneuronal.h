@@ -14,7 +14,7 @@ public:
 
     // constructores
     RedNeuronal(int* arquitecturaRed, int* numCapas);               // constructor a partir de archivos txt de arquitectura y pesoss de una red
-    RedNeuronal(std::string arquitecturaRed, std::string pesosRed); // constructor a partir de punteros a un arreglo de arquitectura y cantidad de capas
+    RedNeuronal(std::string arquitecturaRed, std::string pesosRed, std::string string_biasRed); // constructor a partir de punteros a un arreglo de arquitectura y cantidad de capas
 
     // ver los valores de las matrices y arreglos
     void Mostrar_Pesos_Red();   // muestra los valores de las matrices de pesos de la red
@@ -27,7 +27,7 @@ public:
     void Entrenamiento(double* entradaRed, double* salidaRed, double alpha, int iteraciones);   //
 
     // Guardar una red entrenada en archivos txt, pesosRed.txt y arqRed.txt
-    void guardarRed();
+    void guardarRed(std::string ruta);
 
 private:
 
