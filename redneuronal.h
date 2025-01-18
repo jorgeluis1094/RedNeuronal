@@ -11,9 +11,11 @@ public:
     int *arquitecturaRed;   // arreglo que describe la red, cantidad de capas y neuronas por capas
     double **a;             // matriz que presenta las salidas de cada red
 
+    double **f;             // matriz que presenta las salidas de cada red
+
 
     // constructores
-    RedNeuronal(int* arquitecturaRed, int* numCapas);               // constructor a partir de archivos txt de arquitectura y pesoss de una red
+    RedNeuronal(int* arquitecturaRed, int numCapas);               // constructor a partir de archivos txt de arquitectura y pesoss de una red
     RedNeuronal(std::string arquitecturaRed, std::string pesosRed, std::string string_biasRed); // constructor a partir de punteros a un arreglo de arquitectura y cantidad de capas
 
     // ver los valores de las matrices y arreglos
@@ -24,13 +26,17 @@ public:
     void Prediccion(double* X); // Método para realizar una predicción
 
     // metodo para entrenar una red creada
-    void Entrenamiento(double* entradaRed, double* salidaRed, double alpha, int iteraciones);   //
+    void Entrenamiento(double **entradaRed, double **salidaRed, int cantidadDatos, double alpha, int iteraciones);   //
+    void Entrenamiento(std::string datosEntradaRed, std::string datosSalidaRed,int cantidadDatos,double alpha, int iteraciones);
 
     // Guardar una red entrenada en archivos txt, pesosRed.txt y arqRed.txt
     void guardarRed(std::string ruta);
 
-private:
+    // Leer datos de entrada y salida de archivos planos, para entrenamiento de la red
+    void LeerDatosEntrenamiento(std::string rutaX, std::string rutaY, double **X, double *Y);
 
+
+private:
 
     double *b;              // apunta al arreglo de sesgos
     int num_Matriz_W;       //cantidad de matrices de pesos entre capas
@@ -51,13 +57,23 @@ private:
     double logistic_Func(double net);
     double derivada(double valor);
 
+    double sigmoide(double net);
+    double der_sigmoide(double valor);
+
+    double relu(double net);
+    double der_relu(double valor);
+
     double Error(); // metodo para calcular el erro, usado para el entrenamiento
 
     // Llama a los usados para realizar un entrenamiento
     void PrediligenciarEntrenamiento();
 
+    void Borrar_a();
+
     // Carga los pesos de un archivo txt
     void cargarRed(std::string rutPesos);
+
+
 
 
 
