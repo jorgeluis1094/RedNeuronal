@@ -45,7 +45,6 @@ RedNeuronal::RedNeuronal(int* arquitecturaRed, int numCapas){
     crearMatriz_a();
 }
 
-
 /*
  * Constructor de red neuronal.
  * Parámetros de entrada:
@@ -126,11 +125,11 @@ void RedNeuronal::crearMatrizW()
 void RedNeuronal::PreDiligenciarW()
 {
     // Llenar matrices W con valores aleatoreos
-    //for(int k=0; k<this->num_Matriz_W; k++) // matriz
-    //    for(int i=0; i<arquitecturaRed[k]; i++) //fila
-    //        for(int j=0; j<arquitecturaRed[k+1]; j++) //columna
-    //            this->W[k][i][j] = (double)rand()/RAND_MAX;
-    //            //this->W[k][i][j] = 0.0;//(double)(rand() % 10);//RAND_MAX;
+    for(int k=0; k<this->num_Matriz_W; k++) // matriz
+        for(int i=0; i<arquitecturaRed[k]; i++) //fila
+            for(int j=0; j<arquitecturaRed[k+1]; j++) //columna
+                this->W[k][i][j] = (double)rand()/RAND_MAX;
+                //this->W[k][i][j] = 0.0;//(double)(rand() % 10);//RAND_MAX;
 
 
     //W[0][0][0] = 0.15;
@@ -142,12 +141,12 @@ void RedNeuronal::PreDiligenciarW()
     //W[1][0][1] = 0.5;
     //W[1][1][1] = 0.55;
 
-    W[0][0][0] = 0.15; W[0][0][1] = 0.25;
-    W[0][1][0] = 0.2;  W[0][1][1] = 0.3;
+    //W[0][0][0] = 0.15; W[0][0][1] = 0.25;
+    //W[0][1][0] = 0.2;  W[0][1][1] = 0.3;
 
 
-    W[1][0][0] = 0.4;  //W[1][0][1] = 0.5;
-    W[1][1][0] = 0.45; //W[1][1][1] = 0.55;
+    //W[1][0][0] = 0.4;  W[1][0][1] = 0.5;
+    //W[1][1][0] = 0.45; W[1][1][1] = 0.55;
 
 
 }
@@ -184,8 +183,8 @@ void RedNeuronal::PrediligenciarB()
     for (int i=0;i<numCapas-1;i++)
         this->b[i]=(double)rand()/RAND_MAX;
 
-    b[0] = 0.35;
-    b[1] = 0.6;
+    //b[0] = 0.35;
+    //b[1] = 0.6;
 }
 
 /*
@@ -262,16 +261,16 @@ void RedNeuronal::propagacion_Adelante()
                 a[k][i] += a[k-1][j]*W[k-1][j][i];
                 //std::cout<<a[k][i]<<"+="<<a[k-1][j]<<"*"<<W[k-1][j][i]<<std::endl;
             }
-            a[k][i] = sigmoide(a[k][i] + b[k-1]);
+            //a[k][i] = sigmoide(a[k][i] + b[k-1]);
             //std::cout<<"logistic("<<a[k][i]<<"+"<<b[k-1]<<" )"<<" = ";
-            //if(k<numCapas-1){
-            //    a[k][i] = sigmoide(a[k][i] + b[k-1]);
-            //    //std::cout<<k<<std::endl;
-            //}
-            //else{
-            //    a[k][i] = sigmoide(a[k][i] + b[k-1]);
-            //    //std::cout<<k<<std::endl;
-            //}
+            if(k<numCapas-1){
+                a[k][i] = relu(a[k][i] + b[k-1]);
+                //std::cout<<k<<std::endl;
+            }
+            else{
+                a[k][i] = sigmoide(a[k][i] + b[k-1]);
+                //std::cout<<k<<std::endl;
+            }
             //std::cout<<a[k][i]<<std::endl;
         }
     }
@@ -295,14 +294,14 @@ double RedNeuronal::logistic_Func(double net)
  */
 double RedNeuronal::derivada(double valor)
 {
-    return valor*(1-valor);
+    //return valor*(1-valor);
 
     //if (valor>0){
     //    return 1;
     //}
     //return 0;
 
-    //return logistic_Func(valor)*(1-logistic_Func(valor));
+    return logistic_Func(valor)*(1-logistic_Func(valor));
     //return (1-((exp(valor)-exp(-valor))/(exp(valor)+exp(-valor)))*((exp(valor)-exp(-valor))/(exp(valor)+exp(-valor))));
 }
 
@@ -319,7 +318,6 @@ double RedNeuronal::sigmoide(double net)
 double RedNeuronal::der_sigmoide(double valor){
     return sigmoide(valor)*(1-sigmoide(valor));
 }
-
 
 double RedNeuronal::relu(double net){
 
@@ -351,87 +349,71 @@ void RedNeuronal::Entrenamiento(double** entradaRed, double **salidaRed, int can
 
     PrediligenciarEntrenamiento();
 
-    //for(int datos_i=0; datos_i < cantidadDatos ; datos_i++){
+    // Inicializar la capa de entrada con los valores de entrada
+    for (int i=0; i< arquitecturaRed[0];i++)
+        a[0][i] = entradaRed[datos_i][i];
+    // Propaga hacia adelante para calcular la salida en la última capa
+    propagacion_Adelante();
+    // Calcular el error de la última capa
+    for (int i=0; i<arquitecturaRed[numCapas-1]; i++){
+        E[i] = (a[numCapas-1][i]-salidaRed[datos_i][i]);
+        Error_total += 0.5*E[i]*E[i];
+        delta[num_Matriz_W-1][i] = der_sigmoide(a[numCapas-1][i])*E[i]; //delta L
+    }
+    while( p < iteraciones*cantidadDatos ){
+        //Diligenciar delta con la sumatoria
+        for( int k=numCapas-2; k>0; k--)
+            for(int i=0; i<arquitecturaRed[k]; i++){
+                for( int j=0; j<arquitecturaRed[k+1];j++){
+                    delta[k-1][i] += der_relu(a[k][i])*delta[k][j]*W[k][i][j];
+                }
+            }
+        //Actualizar Pesos y bias
+        for (int k=0; k<num_Matriz_W; k++){
+           for(int i=0; i<arquitecturaRed[k+1]; i++){//filas
+               for( int j=0; j<arquitecturaRed[k];j++){ // columnas
+                    W[k][j][i] = W[k][j][i] - alpha*(a[k][j])*(delta[k][i]);
+               }
+               sum_delta += delta[k][i];
+           }
+           b[k] = b[k] - alpha*sum_delta;
+           sum_delta = 0;
+        }
+        //reiniciar delta
+        for(int k=0; k<num_Matriz_W; k++)
+            for(int i=0; i<arquitecturaRed[k+1]; i++){
+                delta[k][i]=0;
+            }
         // Inicializar la capa de entrada con los valores de entrada
-        for (int i=0; i< arquitecturaRed[0];i++)
+        for (int i=0; i<arquitecturaRed[0]; i++){
             a[0][i] = entradaRed[datos_i][i];
-
+        }
         // Propaga hacia adelante para calcular la salida en la última capa
         propagacion_Adelante();
-
         // Calcular el error de la última capa
+        Error_total=0;
         for (int i=0; i<arquitecturaRed[numCapas-1]; i++){
             E[i] = (a[numCapas-1][i]-salidaRed[datos_i][i]);
             Error_total += 0.5*E[i]*E[i];
-            delta[num_Matriz_W-1][i] = derivada(a[numCapas-1][i])*E[i]; //delta L
+            delta[num_Matriz_W-1][i] = der_sigmoide(a[numCapas-1][i])*E[i]; //delta L
         }
-
-        while( p < iteraciones ){
-            //Diligenciar delta con la sumatoria
-            for( int k=numCapas-2; k>0; k--)
-                for(int i=0; i<arquitecturaRed[k]; i++){
-                    for( int j=0; j<arquitecturaRed[k+1];j++){
-                        delta[k-1][i] += derivada(a[k][i])*delta[k][j]*W[k][i][j];
-                    }
-                }
-
-            //Actualizar Pesos y bias
-            for (int k=0; k<num_Matriz_W; k++){
-               for(int i=0; i<arquitecturaRed[k+1]; i++){//filas
-                   for( int j=0; j<arquitecturaRed[k];j++){ // columnas
-                        W[k][j][i] = W[k][j][i] - alpha*(a[k][j])*(delta[k][i]);
-                   }
-                   sum_delta += delta[k][i];
-               }
-               b[k] = b[k] - alpha*sum_delta;
-               sum_delta = 0;
-            }
-
-            //reiniciar delta
-            for(int k=0; k<num_Matriz_W; k++)
-                for(int i=0; i<arquitecturaRed[k+1]; i++){
-                    delta[k][i]=0;
-                }
-
-            // Inicializar la capa de entrada con los valores de entrada
-            for (int i=0; i<arquitecturaRed[0]; i++){
-                a[0][i] = entradaRed[datos_i][i];
-            }
-
-            // Propaga hacia adelante para calcular la salida en la última capa
-            propagacion_Adelante();
-
-
-            // Calcular el error de la última capa
-            Error_total=0;
-            for (int i=0; i<arquitecturaRed[numCapas-1]; i++){
-                E[i] = (a[numCapas-1][i]-salidaRed[datos_i][i]);//E[i] = (a[numCapas-1][i]-salidaRed[datos_i][i]);
-                Error_total += 0.5*E[i]*E[i];
-                delta[num_Matriz_W-1][i] = derivada(a[numCapas-1][i])*E[i]; //delta L
-            }
-
-            //std::cout<<p<<" "<<p%3<<" "<<datos_i<<std::endl;
-
-            // Mueve
-            if (p%cantidadDatos == 0){
-                datos_i++;
-                if (datos_i>cantidadDatos-1)
-                    datos_i=0;
-            }
-            p++;
-
-        //}
-
+        // Mueve
+        if (p%cantidadDatos == 0){
+            datos_i++;
+            if (datos_i>cantidadDatos-1)
+                datos_i=0;
+        }
+        p++;
     }
-    std::cout<<"Se realizaron "<<p<<" iteraciones. Error total: "<<Error_total<<std::endl;
-
+    std::cout<<"Entremaniento finalizado. Se realizaron "<<p<<" iteraciones. Error total: "<<Error_total<<std::endl;
+    std::cout<<std::endl;
 }
 
 /*
  * Entrenala red mediante retropropagación y actualiza los pesos y sesgos.
  * Se encuentra entrenando con datos en un archivo de entrada y uno de salida
  */
-void RedNeuronal::Entrenamiento(std::string datosEntradaRed, std::string datosSalidaRed, int cantidadDatos, double alpha, int iteraciones)
+void RedNeuronal::Entrenamiento2(std::string datosEntradaRed, std::string datosSalidaRed, int cantidadDatos, double alpha, int iteraciones)
 {
     //double** matrizEntradaRed = NULL;
     //double vectorSalidaRed[cantidadDatos];
@@ -526,8 +508,6 @@ void RedNeuronal::PrediligenciarEntrenamiento()
         for(int i=0; i<arquitecturaRed[k+1]; i++){
             delta[k][i]=0;
         }
-
-
 }
 
 /*
@@ -580,6 +560,8 @@ void RedNeuronal::guardarRed(std::string ruta)
     pesosRed.close();
     arqRed.close();
     biasRed.close();
+
+    std::cout<<"Red guardada en "<<ruta<<std::endl;
 }
 
 /*
@@ -621,11 +603,12 @@ void RedNeuronal::cargarRed(std::string rutaPesos)
  */
 void RedNeuronal::LeerDatosEntrenamiento(std::string rutaX,
                                          std::string rutaY,
-                                         double **X, double *Y)
+                                         double **X, double **Y)
 {
     // Create an input filestream
     std::ifstream File_X(rutaX);
     std::ifstream File_Y(rutaY);
+    //int i = 0;
 
     // Make sure the file is open
     if(!File_X.is_open()) throw std::runtime_error("Could not open file");
@@ -637,6 +620,7 @@ void RedNeuronal::LeerDatosEntrenamiento(std::string rutaX,
     int fila_x=0,col_x=0;
     int col_y=0;
 
+    // Leer datos de X
     while ( getline(File_X, line_X) ){
         while (line_X.find(',') != std::string::npos) {
             pos_x = line_X.find(',');
@@ -650,15 +634,80 @@ void RedNeuronal::LeerDatosEntrenamiento(std::string rutaX,
         //std::cout<<std::endl;
     }
 
+
     while(getline(File_Y, line_Y)){
         pos_y = line_Y.find(',');
-        Y[col_y] = std::stod(line_Y.substr(0, pos_y));
-        //std::cout<<Y[col_y]<<std::endl;
+        Y[col_y][0] = std::stod(line_Y.substr(0, pos_y));
+        //std::cout<<col_y<<" = "<<std::stod(line_Y.substr(0, pos_y))<<std::endl;
         col_y++;
+        //i++;
     }
 
     File_X.close();
     File_Y.close();
+}
+
+
+void RedNeuronal::LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY, double **X, double **Y)
+{
+    std::vector<double> array;
+    cv::Mat IMAGENchica;
+    int i=0;
+
+
+    //for (auto & p : std::filesystem::directory_iterator(rutaX)){
+    //    cv::Mat image = cv::imread(std::string(p.path()),CV_8UC2);   // Read the file
+    //    cv::resize(image, IMAGENchica, cv::Size(250,250));
+    //    if (IMAGENchica.isContinuous()) {
+    //        array.assign(IMAGENchica.data, IMAGENchica.data + IMAGENchica.total()*IMAGENchica.channels());
+    //    } else {
+    //        for (int i = 0; i < IMAGENchica.rows; ++i) {
+    //            array.insert(array.end(), IMAGENchica.ptr<uchar>(i), IMAGENchica.ptr<uchar>(i)+IMAGENchica.cols*IMAGENchica.channels());
+    //        }
+    //    }
+    //    X[i++] = &array[0];
+    //}
+    //i=0;
+
+    std::string line;
+
+    for (auto & p : std::filesystem::directory_iterator(rutaY)){
+
+        std::string ruta = std::string(p.path());
+        std::ifstream File_Y(ruta);
+        std::string r;
+        //std::cout<<std::string(p.path())<<" "<<std::endl;
+
+        while (getline(File_Y, line))
+        {
+            // Checking if sub is present in s
+            int res = line.find("<width>");
+            int res1 = line.find("</width>");
+            if(res>0)
+                std::cout<<line.substr(res+7,res1-9)<<std::endl;
+
+        }
+
+        //cv::Mat image = cv::imread(std::string(p.path()),CV_8UC2);   // Read the file
+        //cv::resize(image, IMAGENchica, cv::Size(250,250));
+        //if (IMAGENchica.isContinuous()) {
+        //    array.assign(IMAGENchica.data, IMAGENchica.data + IMAGENchica.total()*IMAGENchica.channels());
+        //} else {
+        //    for (int i = 0; i < IMAGENchica.rows; ++i) {
+        //        array.insert(array.end(), IMAGENchica.ptr<uchar>(i), IMAGENchica.ptr<uchar>(i)+IMAGENchica.cols*IMAGENchica.channels());
+        //    }
+        //}
+    }
+
+    //if (IMAGENchica.isContinuous()) {
+    //    // array.assign(mat.datastart, mat.dataend); // <- has problems for sub-matrix like mat = big_mat.row(i)
+    //    array.assign(IMAGENchica.data, IMAGENchica.data + IMAGENchica.total()*IMAGENchica.channels());
+    //} else {
+    //    for (int i = 0; i < IMAGENchica.rows; ++i) {
+    //        array.insert(array.end(), IMAGENchica.ptr<uchar>(i), IMAGENchica.ptr<uchar>(i)+IMAGENchica.cols*IMAGENchica.channels());
+    //    }
+    //}
+
 }
 
 void RedNeuronal::Borrar_a()

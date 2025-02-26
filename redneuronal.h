@@ -1,6 +1,8 @@
 #ifndef REDNEURONAL_H
 #define REDNEURONAL_H
 #include <string>
+#include <filesystem>
+#include <opencv2/opencv.hpp>
 
 class RedNeuronal
 {
@@ -27,13 +29,14 @@ public:
 
     // metodo para entrenar una red creada
     void Entrenamiento(double **entradaRed, double **salidaRed, int cantidadDatos, double alpha, int iteraciones);   //
-    void Entrenamiento(std::string datosEntradaRed, std::string datosSalidaRed,int cantidadDatos,double alpha, int iteraciones);
+    void Entrenamiento2(std::string datosEntradaRed, std::string datosSalidaRed,int cantidadDatos,double alpha, int iteraciones);
 
     // Guardar una red entrenada en archivos txt, pesosRed.txt y arqRed.txt
     void guardarRed(std::string ruta);
 
     // Leer datos de entrada y salida de archivos planos, para entrenamiento de la red
-    void LeerDatosEntrenamiento(std::string rutaX, std::string rutaY, double **X, double *Y);
+    void LeerDatosEntrenamiento(std::string rutaX, std::string rutaY, double **X, double **Y);
+    void LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY, double **X, double **Y);
 
 
 private:
