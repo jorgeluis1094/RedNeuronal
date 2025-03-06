@@ -180,13 +180,13 @@ int main()
     //cout<<"4) Salida despues de entrenamiento test: "<<test[0]<<" "<<test[1]<<" = "<<round(red->a[numCapas-1][0])<<endl;
     //cout<<endl;
 //
-    Mat image = cv::imread("/home/jorge/Documentos/Programacion/Cplusplus/RedNeuronal/Data/linux.jpg",
+    Mat image = cv::imread("/home/jorge/Documentos/Programacion/C++/RedNeuronal/Data/linux.jpg",
                            CV_8UC2);   // Read the file
 
 
 
     Mat IMAGENchica;
-    resize(image, IMAGENchica, Size(680,430));
+    resize(image, IMAGENchica, Size(250,250));
     //imshow("cvmat", IMAGENchica);                   // Show our image inside it.
     std::vector<double> array;
     if (IMAGENchica.isContinuous()) {
@@ -216,7 +216,6 @@ int main()
     //y[1][0] = 1;
     //y[2][0] = 1;
     //y[3][0] = 0;
-
     int numCapas = 5;
     int arqRed[numCapas];
     arqRed[0]= sizeArray;
@@ -231,13 +230,13 @@ int main()
 
     //red->Entrenamiento(x,y,1,0.3,100);
 
-    red->LeerImagenesEntrenamiento("/home/jorge/Documentos/Programacion/Cplusplus/RedNeuronal/Data/OD-WeaponDetection/Knife_detection/Images/",
-                                   "/home/jorge/Documentos/Programacion/Cplusplus/RedNeuronal/Data/OD-WeaponDetection/Knife_detection/annotations/",
+    red->LeerImagenesEntrenamiento("/home/jorge/Documentos/Programacion/C++/RedNeuronal/Data/OD-WeaponDetection/Knife_detection/Images/",
+                                   "/home/jorge/Documentos/Programacion/C++/RedNeuronal/Data/OD-WeaponDetection/Knife_detection/annotations/",
                                    x,
                                    y);
 
 
-    delete[] x;
+    //delete[] x;
 
     return 0;
 }

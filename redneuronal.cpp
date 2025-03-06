@@ -670,23 +670,65 @@ void RedNeuronal::LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY
     //i=0;
 
     std::string line;
+    std::string ruta;
+    std::string claves[]={"<width>","</width>",
+                          "<height>","</height>",
+                          "<depth>","</depth>"};
+    int j=0;
 
+    //Recorre todos los archivos de una carpeta
     for (auto & p : std::filesystem::directory_iterator(rutaY)){
+        j++;
 
-        std::string ruta = std::string(p.path());
+        ruta = std::string(p.path());
         std::ifstream File_Y(ruta);
-        std::string r;
+
         //std::cout<<std::string(p.path())<<" "<<std::endl;
 
-        while (getline(File_Y, line))
+        std::cout<<j<<" "<<std::endl;
+        //recorre todas las lineas de un archivo
+        while (std::getline(File_Y, line))
         {
-            // Checking if sub is present in s
-            int res = line.find("<width>");
-            int res1 = line.find("</width>");
-            if(res>0)
-                std::cout<<line.substr(res+7,res1-9)<<std::endl;
+
+            for(int i=0; i<3; i++){
+                //std::cout<<claves[i*2]<<" "<<claves[i*2+1]<<std::endl;
+                int pos1 = line.find(claves[i*2]);
+                int pos2 = line.find(claves[i*2+1]);
+
+                if(pos1>0 && pos2>0){
+
+                    switch(i){
+                    case 0:
+                        std::cout<<"width: "<<line.substr(pos1+7,pos2-9)<<std::endl;
+                        break;
+                    case 1:
+                        std::cout<<"height: "<<line.substr(pos1+8,pos2-10)<<std::endl;
+                        break;
+
+                    case 2:
+                        std::cout<<"depth: "<<line.substr(pos1+7,pos2-9)<<std::endl;
+                        break;
+
+                    default:
+                        std::cout<<"error no encontró"<<std::endl;
+
+                    }
+
+                }
+
+
+            }
+
+            //int res = line.find("<width>");
+            //int res1 = line.find("</width>");
+            //if(res>0){
+            //    i++;
+            //    std::cout<<i<<" "<<res<<" "<<res1<<" "<<line.substr(res+7,res1-9)<<std::endl;
+            //    //std::cout<<line.substr(res+7,res1-9)<<std::endl;
+            //}
 
         }
+
 
         //cv::Mat image = cv::imread(std::string(p.path()),CV_8UC2);   // Read the file
         //cv::resize(image, IMAGENchica, cv::Size(250,250));
