@@ -15,6 +15,24 @@ public:
 
     double **f;             // matriz que presenta las salidas de cada red
 
+    struct dataImg{
+        std::string ruta = "";
+        int width = 1;
+        int height = 1;
+        int depth = 0;
+        std::string clase = "";
+        int xMin = 0;
+        int yMin = 0 ;
+        int xMax = 0;
+        int yMax = 0;
+        double xminAbs = 0;
+        double yminAbs = 0;
+        double xmaxAbs = 0;
+        double ymaxAbs = 0;
+    };
+    dataImg datos[2079];
+
+
 
     // constructores
     RedNeuronal(int* arquitecturaRed, int numCapas);               // constructor a partir de archivos txt de arquitectura y pesoss de una red
@@ -29,14 +47,14 @@ public:
 
     // metodo para entrenar una red creada
     void Entrenamiento(double **entradaRed, double **salidaRed, int cantidadDatos, double alpha, int iteraciones);   //
-    void Entrenamiento2(std::string datosEntradaRed, std::string datosSalidaRed,int cantidadDatos,double alpha, int iteraciones);
+    void Entrenamiento2(double **entradaRed, double **salidaRed, int cantidadDatos, double alpha, int iteraciones);
 
     // Guardar una red entrenada en archivos txt, pesosRed.txt y arqRed.txt
     void guardarRed(std::string ruta);
 
     // Leer datos de entrada y salida de archivos planos, para entrenamiento de la red
     void LeerDatosEntrenamiento(std::string rutaX, std::string rutaY, double **X, double **Y);
-    void LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY, double **X, double **Y);
+    void LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY, std::vector<cv::Mat> *X, double **Y);
 
 
 private:

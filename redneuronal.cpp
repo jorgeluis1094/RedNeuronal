@@ -20,6 +20,8 @@
 #include <iostream>
 #include <bits/stdc++.h>
 
+#include <sstream>
+
 /*
  * Constructor de red neuronal.
  * Parámetros de entrada:
@@ -77,7 +79,6 @@ RedNeuronal::RedNeuronal(std::string string_arqRed, std::string pesosRed, std::s
         //std::cout<<line<<" ";
     }
     ReadmyFile.close();
-
 
     ReadmyFile.open(string_biasRed);
     double *biasRed = new double[numCapas-1];
@@ -413,80 +414,73 @@ void RedNeuronal::Entrenamiento(double** entradaRed, double **salidaRed, int can
  * Entrenala red mediante retropropagación y actualiza los pesos y sesgos.
  * Se encuentra entrenando con datos en un archivo de entrada y uno de salida
  */
-void RedNeuronal::Entrenamiento2(std::string datosEntradaRed, std::string datosSalidaRed, int cantidadDatos, double alpha, int iteraciones)
+void RedNeuronal::Entrenamiento2(double** entradaRed, double **salidaRed, int cantidadDatos, double alpha, int iteraciones)
 {
-    //double** matrizEntradaRed = NULL;
-    //double vectorSalidaRed[cantidadDatos];
-//
-    //matrizEntradaRed =  new double*[cantidadDatos];
-    //for (int i = 0; i < cantidadDatos; i++)
-    //    matrizEntradaRed[i] = new double[arquitecturaRed[0]];
-//
-    //LeerDatosEntrenamiento(datosEntradaRed, datosSalidaRed, matrizEntradaRed, vectorSalidaRed);
-//
-//
-    ////for(int i=0; i<cantidadDatos;i++){
-    ////    for(int j=0;j<2;j++){
-    ////        std::cout<<matrizEntradaRed[i][j]<<" ";
-    ////    }
-    ////    std::cout<<std::endl;
-    ////}
-//
-    //PrediligenciarEntrenamiento();
-//
-    //int cantDatos_i=0;
-//
-    //double Error=0;
-    //E[0] = 1;
-    ////for (int i=0;i<iteraciones;i++){
-    //while( E[0] > 0.01 ){
-//
-    //    // para recorrer el grupo de datos
-    //    if (cantDatos_i==cantidadDatos)
-    //        cantDatos_i=0;
-//
-    //    // Inicializa la primera capa con x
-    //    for(int i=0; i< arquitecturaRed[0]; i++){
-    //        a[0][i]=matrizEntradaRed[cantDatos_i][i];
-    //        //std::cout<<matrizEntradaRed[cantDatos_i][i]<<" ";
-    //    }
-    //    //std::cout<<vectorSalidaRed[cantDatos_i]<<std::endl;
-//
-    //    //delta de la última capa
-    //    for (int i=0; i<arquitecturaRed[numCapas-1]; i++)
-    //    {
-    //        E[i] = a[numCapas-1][i]-vectorSalidaRed[cantDatos_i];
-    //        Error += 0.5*E[i]*E[i];
-    //        delta[num_Matriz_W-1][i] = derivada(a[numCapas-1][i])*E[i];
-    //    }
-    //    //std::cout<<E[0]<<std::endl;
-//
-    //    //Diligenciar delta con la sumatoria
-    //    for( int k=numCapas-2; k>0; k--)
-    //        for(int i=0; i<arquitecturaRed[k]; i++)
-    //            for( int j=0; j<arquitecturaRed[k+1];j++)
-    //                delta[k-1][i] += derivada(a[k][i])*delta[k][j]*W[k][i][j];
-    //    //Actualización de pesos y sesgos
-    //    double sum_delta = 0;
-    //    for (int k=0; k<num_Matriz_W; k++){
-    //        for(int i=0; i<arquitecturaRed[k]; i++) {//filas
-    //            for( int j=0; j<arquitecturaRed[k+1];j++) // columnas
-    //                W[k][i][j] = W[k][i][j] - alpha*(a[k][i]*delta[k][j]);
-    //            sum_delta += delta[k][i];
-    //        }
-    //        b[k] = b[k] - alpha*sum_delta;
-    //        sum_delta = 0;
-    //    }
-//
-    //    propagacion_Adelante();
-    //    Error = 0;
-    //    cantDatos_i++;
-    //}
-    ////Mostrar_a_Red();
-    //Borrar_a();
-    //delete[] E;
-    //delete[] delta;
-//
+    double Error_total = 0;
+    int p=0;
+    int datos_i=0;
+    double sum_delta = 0;
+
+    PrediligenciarEntrenamiento();
+
+    // Inicializar la capa de entrada con los valores de entrada
+    for (int i=0; i< arquitecturaRed[0];i++)
+        a[0][i] = entradaRed[datos_i][i];
+    // Propaga hacia adelante para calcular la salida en la última capa
+    propagacion_Adelante();
+    // Calcular el error de la última capa
+    for (int i=0; i<arquitecturaRed[numCapas-1]; i++){
+        E[i] = (a[numCapas-1][i]-salidaRed[i][datos_i]);
+        Error_total += 0.5*E[i]*E[i];
+        delta[num_Matriz_W-1][i] = der_sigmoide(a[numCapas-1][i])*E[i]; //delta L
+    }
+    while( p < iteraciones*cantidadDatos ){
+        //Diligenciar delta con la sumatoria
+        for( int k=numCapas-2; k>0; k--)
+            for(int i=0; i<arquitecturaRed[k]; i++){
+                for( int j=0; j<arquitecturaRed[k+1];j++){
+                    delta[k-1][i] += der_relu(a[k][i])*delta[k][j]*W[k][i][j];
+                }
+            }
+        //Actualizar Pesos y bias
+        for (int k=0; k<num_Matriz_W; k++){
+            for(int i=0; i<arquitecturaRed[k+1]; i++){//filas
+                for( int j=0; j<arquitecturaRed[k];j++){ // columnas
+                    W[k][j][i] = W[k][j][i] - alpha*(a[k][j])*(delta[k][i]);
+                }
+                sum_delta += delta[k][i];
+            }
+            b[k] = b[k] - alpha*sum_delta;
+            sum_delta = 0;
+        }
+        //reiniciar delta
+        for(int k=0; k<num_Matriz_W; k++)
+            for(int i=0; i<arquitecturaRed[k+1]; i++){
+                delta[k][i]=0;
+            }
+        // Inicializar la capa de entrada con los valores de entrada
+        for (int i=0; i<arquitecturaRed[0]; i++){
+            a[0][i] = entradaRed[datos_i][i];
+        }
+        // Propaga hacia adelante para calcular la salida en la última capa
+        propagacion_Adelante();
+        // Calcular el error de la última capa
+        Error_total=0;
+        for (int i=0; i<arquitecturaRed[numCapas-1]; i++){
+            E[i] = (a[numCapas-1][i]-salidaRed[datos_i][i]);
+            Error_total += 0.5*E[i]*E[i];
+            delta[num_Matriz_W-1][i] = der_sigmoide(a[numCapas-1][i])*E[i]; //delta L
+        }
+        // Mueve
+        if (p%cantidadDatos == 0){
+            datos_i++;
+            if (datos_i>cantidadDatos-1)
+                datos_i=0;
+        }
+        p++;
+    }
+    std::cout<<"Entremaniento finalizado. Se realizaron "<<p<<" iteraciones. Error total: "<<Error_total<<std::endl;
+    std::cout<<std::endl;
 }
 
 /*
@@ -597,7 +591,6 @@ void RedNeuronal::cargarRed(std::string rutaPesos)
     myFile.close();
 }
 
-
 /*
  * Lee archivos de datos de variable independiente y dependiente y los guarda en matris X y puntero Y
  */
@@ -648,107 +641,197 @@ void RedNeuronal::LeerDatosEntrenamiento(std::string rutaX,
 }
 
 
-void RedNeuronal::LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY, double **X, double **Y)
+void RedNeuronal::LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY, std::vector<cv::Mat> *X, double **Y)
 {
     std::vector<double> array;
     cv::Mat IMAGENchica;
-    int i=0;
-
-
-    //for (auto & p : std::filesystem::directory_iterator(rutaX)){
-    //    cv::Mat image = cv::imread(std::string(p.path()),CV_8UC2);   // Read the file
-    //    cv::resize(image, IMAGENchica, cv::Size(250,250));
-    //    if (IMAGENchica.isContinuous()) {
-    //        array.assign(IMAGENchica.data, IMAGENchica.data + IMAGENchica.total()*IMAGENchica.channels());
-    //    } else {
-    //        for (int i = 0; i < IMAGENchica.rows; ++i) {
-    //            array.insert(array.end(), IMAGENchica.ptr<uchar>(i), IMAGENchica.ptr<uchar>(i)+IMAGENchica.cols*IMAGENchica.channels());
-    //        }
-    //    }
-    //    X[i++] = &array[0];
-    //}
-    //i=0;
-
     std::string line;
     std::string ruta;
-    std::string claves[]={"<width>","</width>",
+    std::string tamaho[]={"<filename>","</filename>",
+                          "<width>","</width>",
                           "<height>","</height>",
                           "<depth>","</depth>"};
+
+    std::string posicion[]={"<name>","</name>",
+                            "<xmin>","</xmin>",
+                            "<ymin>","</ymin>",
+                            "<xmax>","</xmax>",
+                            "<ymax>","</ymax>"};
     int j=0;
+    int pos1=0;
+    int pos2=0;
 
     //Recorre todos los archivos de una carpeta
     for (auto & p : std::filesystem::directory_iterator(rutaY)){
-        j++;
-
         ruta = std::string(p.path());
         std::ifstream File_Y(ruta);
-
         //std::cout<<std::string(p.path())<<" "<<std::endl;
-
-        std::cout<<j<<" "<<std::endl;
+        //std::cout<<j<<" "<<std::endl;
         //recorre todas las lineas de un archivo
-        while (std::getline(File_Y, line))
-        {
-
-            for(int i=0; i<3; i++){
+        while (std::getline(File_Y, line)){
+            for(int i=0; i<4; i++){
                 //std::cout<<claves[i*2]<<" "<<claves[i*2+1]<<std::endl;
-                int pos1 = line.find(claves[i*2]);
-                int pos2 = line.find(claves[i*2+1]);
-
+                pos1 = line.find(tamaho[i*2]);
+                pos2 = line.find(tamaho[i*2+1]);
                 if(pos1>0 && pos2>0){
-
                     switch(i){
                     case 0:
-                        std::cout<<"width: "<<line.substr(pos1+7,pos2-9)<<std::endl;
+                        //std::cout<<"Ruta img: "<<rutaY<<line.substr(pos1+10,pos2-11)<<std::endl;
+                        datos[j].ruta = rutaX+line.substr(pos1+10,pos2-11);
                         break;
                     case 1:
-                        std::cout<<"height: "<<line.substr(pos1+8,pos2-10)<<std::endl;
+                        //std::cout<<"width: "<<line.substr(pos1+7,pos2-9)<<std::endl;
+                        datos[j].width = stoi(line.substr(pos1+7,pos2-9));
                         break;
-
                     case 2:
-                        std::cout<<"depth: "<<line.substr(pos1+7,pos2-9)<<std::endl;
+                        //std::cout<<"height: "<<line.substr(pos1+8,pos2-10)<<std::endl;
+                        datos[j].height = stoi(line.substr(pos1+8,pos2-10));
                         break;
-
+                    case 3:
+                        //std::cout<<"depth: "<<line.substr(pos1+7,pos2-9)<<std::endl;
+                        datos[j].depth = stoi(line.substr(pos1+7,pos2-9));
+                        break;
                     default:
                         std::cout<<"error no encontró"<<std::endl;
-
                     }
-
                 }
-
-
             }
-
-            //int res = line.find("<width>");
-            //int res1 = line.find("</width>");
-            //if(res>0){
-            //    i++;
-            //    std::cout<<i<<" "<<res<<" "<<res1<<" "<<line.substr(res+7,res1-9)<<std::endl;
-            //    //std::cout<<line.substr(res+7,res1-9)<<std::endl;
-            //}
-
+            for(int i=0; i<5; i++){
+                //std::cout<<claves[i*2]<<" "<<claves[i*2+1]<<std::endl;
+                pos1 = line.find(posicion[i*2]);
+                pos2 = line.find(posicion[i*2+1]);
+                if(pos1>0 && pos2>0){
+                    switch(i){
+                    case 0:
+                        //std::cout<<"name: "<<line.substr(pos1+6,pos2-8)<<std::endl;
+                        datos[j].clase = line.substr(pos1+6,pos2-8);
+                        break;
+                    case 1:
+                        //std::cout<<"xmin: "<<line.substr(pos1+6,pos2-9)<<std::endl;
+                        datos[j].xMin = stoi(line.substr(pos1+6,pos2-9));
+                        datos[j].xminAbs = (double)datos[j].xMin/(double)datos[j].width;
+                        break;
+                    case 2:
+                        //std::cout<<"ymin: "<<line.substr(pos1+6,pos2-9)<<std::endl;
+                        datos[j].yMin = stoi(line.substr(pos1+6,pos2-9));
+                        datos[j].yminAbs = (double)datos[j].yMin/(double)datos[j].height;
+                        break;
+                    case 3:
+                        //std::cout<<"xmax: "<<line.substr(pos1+6,pos2-9)<<std::endl;
+                        datos[j].xMax = stoi(line.substr(pos1+6,pos2-9));
+                        datos[j].xmaxAbs = (double)datos[j].xMax/(double)datos[j].width;
+                        break;
+                    case 4:
+                        //std::cout<<"ymax: "<<line.substr(pos1+6,pos2-9)<<std::endl;
+                        datos[j].yMax = stoi(line.substr(pos1+6,pos2-9));
+                        datos[j].ymaxAbs = (double)datos[j].yMax/(double)datos[j].height;
+                        break;
+                    default:
+                        std::cout<<"error no encontró"<<std::endl;
+                    }
+                }
+            }
         }
 
+        cv::Mat IMAGENchica;
+        cv::Mat image = cv::imread(datos[j].ruta,CV_8SC3);   // Read the file
+        cv::resize(image, IMAGENchica, cv::Size(250,250));
 
-        //cv::Mat image = cv::imread(std::string(p.path()),CV_8UC2);   // Read the file
-        //cv::resize(image, IMAGENchica, cv::Size(250,250));
-        //if (IMAGENchica.isContinuous()) {
-        //    array.assign(IMAGENchica.data, IMAGENchica.data + IMAGENchica.total()*IMAGENchica.channels());
-        //} else {
-        //    for (int i = 0; i < IMAGENchica.rows; ++i) {
-        //        array.insert(array.end(), IMAGENchica.ptr<uchar>(i), IMAGENchica.ptr<uchar>(i)+IMAGENchica.cols*IMAGENchica.channels());
-        //    }
+        //cv::namedWindow("cvmat", cv::WINDOW_AUTOSIZE );// Create a window for display.
+        //cv::imshow("cvmat", IMAGENchica);
+        //cv::waitKey(0);
+
+        // flatten the mat.
+        //uint totalElements = IMAGENchica.total()*IMAGENchica.channels(); // Note: image.total() == rows*cols.
+        //uint totalElements = IMAGENchica.total()*IMAGENchica.channels(); // Note: image.total() == rows*cols.
+        //cv::Mat flat = IMAGENchica.reshape(1, totalElements); // 1xN mat of 1 channel, O(1) operation
+        //if(!IMAGENchica.isContinuous()) {
+        //    flat = flat.clone(); // O(N),
         //}
+        //// flat.data is your array pointer
+        //auto *ptr = flat.data; // usually, its uchar*
+        // You have your array, its length is flat.total() [rows=1, cols=totalElement
+        // Testing by reconstruction of cvMat
+        //cv::Mat restored = cv::Mat(IMAGENchica.rows, IMAGENchica.cols, CV_8SC3, ptr);
+        //cv::namedWindow("reconstructed", cv::WINDOW_AUTOSIZE);
+        //cv::imshow("reconstructed", restored);
+        //cv::waitKey(0);
+
+        //std::cout<<totalElements<<std::endl;
+        //std::cout<<IMAGENchica.rows<<std::endl;
+        //std::cout<<IMAGENchica.cols<<std::endl;
+        //std::cout<<IMAGENchica.channels()<<std::endl;
+
+
+
+        Y[0][j] = datos[j].xminAbs;
+        Y[1][j] = datos[j].yminAbs;
+        Y[2][j] = datos[j].xmaxAbs;
+        Y[3][j] = datos[j].ymaxAbs;
+        //X[j] = &IMAGENchica;
+        X->push_back(IMAGENchica);
+
+        //std::cout<<IMAGENchica.rows<<" "<<IMAGENchica.cols<<" "<<IMAGENchica.type()<<" "<< &ptr<<std::endl;
+
+        //cv::Mat restored = cv::Mat(250, 250, CV_8UC3, *(X+j)); // OR vec.data() instead of ptr
+        //cv::Rect rect(Y[0][j]*250,Y[1][j]*250,(Y[2][j]-Y[0][j])*250,(Y[3][j]-Y[1][j])*250);
+        //cv::rectangle(*X[j],rect,cv::Scalar(0, 255, 0));
+        //cv::namedWindow("reconstructed", cv::WINDOW_AUTOSIZE);
+        //cv::imshow("reconstructed", *X[j]);
+        //cv::waitKey(0);
+
+        j++;
     }
 
-    //if (IMAGENchica.isContinuous()) {
-    //    // array.assign(mat.datastart, mat.dataend); // <- has problems for sub-matrix like mat = big_mat.row(i)
-    //    array.assign(IMAGENchica.data, IMAGENchica.data + IMAGENchica.total()*IMAGENchica.channels());
-    //} else {
-    //    for (int i = 0; i < IMAGENchica.rows; ++i) {
-    //        array.insert(array.end(), IMAGENchica.ptr<uchar>(i), IMAGENchica.ptr<uchar>(i)+IMAGENchica.cols*IMAGENchica.channels());
+    //for(auto i:X){
+    //cv::namedWindow("reconstructed", cv::WINDOW_AUTOSIZE);//imprimir los valores cargados de las imagenes i recorre las imagenes y j los datos de las imagenes
+    //cv::imshow("reconstructed", i);//for (int i=0; i< 4; i++){
+    //cv::waitKey(0);//    std::cout<<"*************************************************"<<std::endl<<std::endl;
+    //}
+
+    //    for(int j=0; j<250*250*3;j++){
+    //        std::cout<<j<<": "<<X[i][j]<<" "; //i=imagen j=datos de la imagen
     //    }
     //}
+
+    // con i recorreo las imagenes, con j recorre las caracteristicas de cada imagen
+    //for (int i=0; i< 4; i++){
+    //    std::cout<<i<<" *************************************************"<<std::endl<<std::endl;
+    //    for(int j=0; j<4;j++){
+    //        std::cout<<j<<": "<<Y[j][i]<<" "; //i=imagen j=datos de la imagen
+    //    }
+    //}
+
+
+
+    //for(int i=0;i<j;i++){
+    //    std::cout<<"##### "<<i<<" #####"<<std::endl;
+    //    std::cout<<datos[i].ruta<<std::endl;
+    //    std::cout<<datos[i].width<<std::endl;
+    //    std::cout<<datos[i].height<<std::endl;
+    //    std::cout<<datos[i].depth<<std::endl;
+    //    std::cout<<datos[i].clase<<std::endl;
+    //    std::cout<<datos[i].xMin<<std::endl;
+    //    std::cout<<datos[i].yMin<<std::endl;
+    //    std::cout<<datos[i].xMax<<std::endl;
+    //    std::cout<<datos[i].yMax<<std::endl;
+    //    std::cout<<datos[i].xminAbs<<std::endl;
+    //    std::cout<<datos[i].yminAbs<<std::endl;
+    //    std::cout<<datos[i].xmaxAbs<<std::endl;
+    //    std::cout<<datos[i].ymaxAbs<<std::endl;
+    //}
+
+    //for(int j=0;j<4;j++){
+    //    cv::Mat restored = cv::Mat(IMAGENchica.rows, IMAGENchica.cols, IMAGENchica.type(), ptr); // OR vec.data() instead of ptr
+    //    cv::Rect rect(Y[0][j]*250,Y[1][j]*250,(Y[2][j]-Y[0][j])*250,(Y[3][j]-Y[1][j])*250);
+    //    cv::rectangle(restored,rect,cv::Scalar(0, 255, 0));
+    //    cv::namedWindow("reconstructed", cv::WINDOW_AUTOSIZE);
+    //    cv::imshow("reconstructed", restored);
+    //    cv::waitKey(0);
+    //}
+
+
+
 
 }
 

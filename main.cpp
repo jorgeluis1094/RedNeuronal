@@ -180,39 +180,38 @@ int main()
     //cout<<"4) Salida despues de entrenamiento test: "<<test[0]<<" "<<test[1]<<" = "<<round(red->a[numCapas-1][0])<<endl;
     //cout<<endl;
 //
-    Mat image = cv::imread("/home/jorge/Documentos/Programacion/C++/RedNeuronal/Data/linux.jpg",
-                           CV_8UC2);   // Read the file
-
-
-
-    Mat IMAGENchica;
-    resize(image, IMAGENchica, Size(250,250));
+    //Mat image = cv::imread("/home/jorge/Documentos/Programacion/Cplusplus/RedNeuronal/Data/linux.jpg",CV_8UC2);   // Read the file
+    //Mat IMAGENchica;
+    //resize(image, IMAGENchica, Size(250,250));
     //imshow("cvmat", IMAGENchica);                   // Show our image inside it.
-    std::vector<double> array;
-    if (IMAGENchica.isContinuous()) {
-        // array.assign(mat.datastart, mat.dataend); // <- has problems for sub-matrix like mat = big_mat.row(i)
-        array.assign(IMAGENchica.data, IMAGENchica.data + IMAGENchica.total()*IMAGENchica.channels());
-    } else {
-        for (int i = 0; i < IMAGENchica.rows; ++i) {
-            array.insert(array.end(), IMAGENchica.ptr<uchar>(i), IMAGENchica.ptr<uchar>(i)+IMAGENchica.cols*IMAGENchica.channels());
-        }
-    }
-
-    int sizeArray = array.size();
-
-    double** x;
-    x =  new double*[sizeArray];
-    for (int i = 0; i < sizeArray; i++)
-        x[i] = new double[2];
+    //waitKey(0);
+    //std::vector<double> array;
+    //if (IMAGENchica.isContinuous()) {
+    //    // array.assign(mat.datastart, mat.dataend); // <- has problems for sub-matrix like mat = big_mat.row(i)
+    //    array.assign(IMAGENchica.data, IMAGENchica.data + IMAGENchica.total()*IMAGENchica.channels());
+    //} else {
+    //    for (int i = 0; i < IMAGENchica.rows; ++i) {
+    //        array.insert(array.end(), IMAGENchica.ptr<uchar>(i), IMAGENchica.ptr<uchar>(i)+IMAGENchica.cols*IMAGENchica.channels());
+    //    }
+    //}
 
 
-    x[0] = &array[0];
+    int sizeArray = 250*250*3;//array.size();
+    int numImages = 4;
+    //Mat **x;
+    //x = new Mat*[numImages];
+    //for (int i = 0; i < numImages; i++)
+    //    x[i] = new Mat[sizeArray];
+    //
+    ////x[0] = &array[0];
 
-    double** y;
-    y =  new double*[1];
-    for (int i = 0; i < 1; i++)
-        y[i] = new double[1];
-    y[0][0] = 0;
+    vector<Mat> x;
+
+    double **y;
+    y =  new double*[numImages];
+    for (int i = 0; i < numImages; i++)
+        y[i] = new double[4];
+    //y[0][0] = 0;
     //y[1][0] = 1;
     //y[2][0] = 1;
     //y[3][0] = 0;
@@ -222,21 +221,69 @@ int main()
     arqRed[1]=4;
     arqRed[2]=4;
     arqRed[3]=2;
-    arqRed[4]=1;
+    arqRed[4]=4;
 
-    //waitKey(0);
 
+
+    //cout<<"puntero paso 1 "<<x<<endl;
     RedNeuronal *red = new RedNeuronal(arqRed,numCapas);
-
-    //red->Entrenamiento(x,y,1,0.3,100);
-
-    red->LeerImagenesEntrenamiento("/home/jorge/Documentos/Programacion/C++/RedNeuronal/Data/OD-WeaponDetection/Knife_detection/Images/",
-                                   "/home/jorge/Documentos/Programacion/C++/RedNeuronal/Data/OD-WeaponDetection/Knife_detection/annotations/",
-                                   x,
+    red->LeerImagenesEntrenamiento("/home/jorge/Documentos/Programacion/Cplusplus/RedNeuronal/Data/OD-WeaponDetection/Knife_detection/ImagesMuestra/",
+                                   "/home/jorge/Documentos/Programacion/Cplusplus/RedNeuronal/Data/OD-WeaponDetection/Knife_detection/annotationsMuestra//",
+                                   &x,
                                    y);
+    //Mat restored;
+    //for(int j=0;j<numImages;j++){
+    //    //Mat chn[] = {
+    //    //    Mat(250, 250, CV_8UC1, x[j] ),
+    //    //    Mat(250, 250, CV_8UC1, x[j] + 250*250),
+    //    //    Mat(250, 250, CV_8UC1, x[j] + 250*250*2)
+    //    //};
+    //    //
+    //    //merge(chn,3,restored);
+    //    //cv::Mat restored = cv::Mat(250, 250, CV_8UC3 , x.pop_back);
+    //
+    //    //Rect rect(y[0][j]*250,y[1][j]*250,(y[2][j]-y[0][j])*250,(y[3][j]-y[1][j])*250);
+    //    //rectangle(restored,rect,Scalar(0, 255, 0));
+    //    namedWindow("reconstructed", WINDOW_AUTOSIZE);
+    //    restored = x.pop_back();
+    //    imshow("reconstructed", restored);
+    //    waitKey(0);
+    //}
 
+    int j=0;
+    for(auto i:x){
+        Rect rect(y[0][j]*250,y[1][j]*250,(y[2][j]-y[0][j])*250,(y[3][j]-y[1][j])*250);
+        rectangle(i,rect,Scalar(0, 255, 0));
+        namedWindow("reconstructed", cv::WINDOW_AUTOSIZE);//imprimir los valores cargados de las imagenes i recorre las
+        imshow("reconstructed", i);//for (int i=0; i< 4; i++){
+        j++;
+        waitKey(0);//    std::cout<<"*************************************************"<<std::endl<<std::endl;
+   }
+
+
+
+    ////imprimir los valores cargados de las imagenes i recorre las imagenes y j los datos de las imagenes
+    //for (int i=0; i< 1; i++){
+    //    std::cout<<"*************************************************"<<std::endl<<std::endl;
+    //    for(int j=0; j<250*250*3;j++){
+    //        std::cout<<j<<": "<<x[i][j]<<" "; //i=imagen j=datos de la imagen
+    //    }
+    //}
+
+    //std::cout<<" "<<x[0][0]<<" "; //i=imagen j=datos de la imagen
+
+    // con i recorreo las imagenes, con j recorre las caracteristicas de cada imagen
+    //for (int i=0; i< 2078; i++){
+    //    std::cout<<i<<" *************************************************"<<std::endl<<std::endl;
+    //    for(int j=0; j<4;j++){
+    //        std::cout<<j<<": "<<y[j][i]<<" "; //i=imagen j=datos de la imagen
+    //    }
+    //}
+
+    //red->Entrenamiento2(x,y,1,0.3,100);
 
     //delete[] x;
+    delete[] y;
 
     return 0;
 }
