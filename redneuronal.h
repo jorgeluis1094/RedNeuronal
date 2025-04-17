@@ -9,11 +9,15 @@ class RedNeuronal
 public:
 
     // variables
-    double ***W;            //Putero a matrices de pesos de la red, apunta a las diferentes matrices entre capas
-    int *arquitecturaRed;   // arreglo que describe la red, cantidad de capas y neuronas por capas
-    double **a;             // matriz que presenta las salidas de cada red
+    //double ***W;            //Putero a matrices de pesos de la red, apunta a las diferentes matrices entre capas
+    std::vector<std::vector<std::vector<double>>> W;
+    //int *arquitecturaRed;   // arreglo que describe la red, cantidad de capas y neuronas por capas
+    std::vector<int> arquitecturaRed;
+    //double **a;             // matriz que presenta las salidas de cada red
+    std::vector<std::vector<double>> a;
 
-    double **f;             // matriz que presenta las salidas de cada red
+    //double **f;             // matriz que presenta las salidas de cada red
+     std::vector<std::vector<double>> f;
 
     struct dataImg{
         std::string ruta = "";
@@ -29,13 +33,13 @@ public:
         double yminAbs = 0;
         double xmaxAbs = 0;
         double ymaxAbs = 0;
-    };
-    dataImg datos[2079];
+    } datos;
+    //dataImg datos[2079];
 
 
 
     // constructores
-    RedNeuronal(int* arquitecturaRed, int numCapas);               // constructor a partir de archivos txt de arquitectura y pesoss de una red
+    RedNeuronal(std::vector<int> arquitecturaRed, int numCapas);               // constructor a partir de archivos txt de arquitectura y pesoss de una red
     RedNeuronal(std::string arquitecturaRed, std::string pesosRed, std::string string_biasRed); // constructor a partir de punteros a un arreglo de arquitectura y cantidad de capas
 
     // ver los valores de las matrices y arreglos
@@ -47,19 +51,26 @@ public:
 
     // metodo para entrenar una red creada
     void Entrenamiento(double **entradaRed, double **salidaRed, int cantidadDatos, double alpha, int iteraciones);   //
-    void Entrenamiento2(double **entradaRed, double **salidaRed, int cantidadDatos, double alpha, int iteraciones);
+    void Entrenamiento2(std::vector<std::vector<double>>& entradaRed,
+                        std::vector<std::vector<double>>& salidaRed,
+                        double alpha,
+                        int iteraciones);
 
     // Guardar una red entrenada en archivos txt, pesosRed.txt y arqRed.txt
     void guardarRed(std::string ruta);
 
     // Leer datos de entrada y salida de archivos planos, para entrenamiento de la red
-    void LeerDatosEntrenamiento(std::string rutaX, std::string rutaY, double **X, double **Y);
-    void LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY, std::vector<cv::Mat> *X, double **Y);
+    void LeerDatosEntrenamiento(std::string rutaDatos,
+                                std::vector<std::vector<double>>& X,
+                                std::vector<std::vector<double>>& Y);
+
+    void LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY, std::vector<std::vector<double>>& X,  std::vector<std::vector<double>>& Y);
 
 
 private:
 
-    double *b;              // apunta al arreglo de sesgos
+    //double *b;              // apunta al arreglo de sesgos
+    std::vector<double> b;
     int num_Matriz_W;       //cantidad de matrices de pesos entre capas
     int numCapas;           // cantidad de capas de la red, incluye la capa de entrada y salida
 
@@ -72,7 +83,7 @@ private:
     void crearMatriz_a();   // crea el puntero y reserva memoria para las salidas de las neuronas al operar
 
     void crearArrayB();     // crea el puntero al array de sesgos
-    void PrediligenciarB(); // prediligencia aleatoreamente los sesgos
+    //void PrediligenciarB(); // prediligencia aleatoreamente los sesgos
 
     void propagacion_Adelante();
     double logistic_Func(double net);

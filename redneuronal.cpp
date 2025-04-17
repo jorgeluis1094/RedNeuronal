@@ -32,17 +32,17 @@
  * Salida:
  *      No genera salida, crea una red bajo los parámetros de ingreso
  */
-RedNeuronal::RedNeuronal(int* arquitecturaRed, int numCapas){
+RedNeuronal::RedNeuronal(std::vector<int> arquitecturaRed, int numCapas){
 
     this->arquitecturaRed = arquitecturaRed;
     this->numCapas = numCapas;
     this->num_Matriz_W = numCapas-1;
 
     crearMatrizW();
-    PreDiligenciarW(); //Pesos W
+    //PreDiligenciarW(); //Pesos W
 
     crearArrayB();
-    PrediligenciarB(); //bias
+    //PrediligenciarB(); //bias
 
     crearMatriz_a();
 }
@@ -57,68 +57,86 @@ RedNeuronal::RedNeuronal(int* arquitecturaRed, int numCapas){
  */
 RedNeuronal::RedNeuronal(std::string string_arqRed, std::string pesosRed, std::string string_biasRed)
 {
-    std::ifstream ReadmyFile(string_arqRed);
-    //Si no lee correctamente el archivo informa de un error
-    if(!ReadmyFile.is_open()) throw std::runtime_error("Could not open file");
+    std::ifstream ReadmyFile;
+    ////Si no lee correctamente el archivo informa de un error
+    //if(!ReadmyFile.is_open()) throw std::runtime_error("Could not open file");
     std::string line;
-    int numCapas=0;
-    if(ReadmyFile.good()){
-        // Read data, line by line
-        while(getline(ReadmyFile, line,',')){
-            numCapas++;
-        }
-    }
-    ReadmyFile.close();
-    ReadmyFile.open(string_arqRed);
-    int *arqRed = new int[numCapas];
-    int i=0;
-    while(getline(ReadmyFile, line,',')){
-        *(arqRed+i) = stoi(line);
-        i++;
+    //int numCapas=0;
+    //if(ReadmyFile.good()){
+    //    // Read data, line by line
+    //    while(getline(ReadmyFile, line,',')){
+    //        numCapas++;
+    //    }
+    //}
+    //ReadmyFile.close();
 
-        //std::cout<<line<<" ";
+    //ReadmyFile.open(string_arqRed);
+    //int *arqRed = new int[numCapas];
+    //int i=0;
+    //while(getline(ReadmyFile, line,',')){
+    //    *(arqRed+i) = stoi(line);
+    //    i++;
+    //    //std::cout<<line<<" ";
+    //}
+    //ReadmyFile.close();
+
+    ReadmyFile.open(string_arqRed);
+    while (getline(ReadmyFile, line, ',')) {
+        arquitecturaRed.push_back(std::stoi(line));
     }
     ReadmyFile.close();
+
+    //ReadmyFile.open(string_biasRed);
+    //double *biasRed = new double[numCapas-1];
+    //i=0;
+    //while(getline(ReadmyFile, line,',')){
+    //    *(biasRed+i) = stod(line);
+    //    i++;
+    //}
+    //ReadmyFile.close();
 
     ReadmyFile.open(string_biasRed);
-    double *biasRed = new double[numCapas-1];
-    i=0;
-    while(getline(ReadmyFile, line,',')){
-        *(biasRed+i) = stod(line);
-        i++;
-
-        //std::cout<<line<<" ";
+    while (getline(ReadmyFile, line, ',')) {
+        b.push_back(std::stod(line));
     }
     ReadmyFile.close();
 
-    this->arquitecturaRed = arqRed;
-    this->numCapas = numCapas;
-    this->num_Matriz_W = numCapas-1;
+    //this->arquitecturaRed = arqRed;
+    this->numCapas = this->b.size();
+    this->num_Matriz_W = this->numCapas - 1;
 
+
+//
     crearMatrizW();
-    PreDiligenciarW(); //Pesos W
+//    PreDiligenciarW(); //Pesos W
     crearArrayB();
-    //PrediligenciarB(); //bias
+//    //PrediligenciarB(); //bias
     crearMatriz_a();
-    //PreDiligenciar_a(); //asignar memoria pasa matriz a
-
+//    //PreDiligenciar_a(); //asignar memoria pasa matriz a
+//
     cargarRed(pesosRed);
-    this->b = biasRed;
+    //this->b = biasRed;
 }
 
-/*
- * Crea un puntero a matrices para almacenar los pesos de la red entre las diferentes capas
- */
 void RedNeuronal::crearMatrizW()
 {
-    // Reservar memoria de W
-    W = new double **[this->num_Matriz_W]; //matrices de pesos. numCapas-1 para el ejemplo 3 matrices W
-    for(int i=0; i<this->num_Matriz_W;i++){
-        this->W[i] = new double*[arquitecturaRed[i]]; //fila
-        for (int j = 0; j < arquitecturaRed[i]; j++)
-            this->W[i][j] = new double[arquitecturaRed[i+1]]; //columna
+    int filas = 0;
+    int columnas = 0;
+    W.clear(); // Por si se llama más de una vez
+    W.resize(this->num_Matriz_W); // W.size() == numCapas - 1
+    for (int i = 0; i < this->num_Matriz_W; ++i) {
+        filas = arquitecturaRed[i];
+        columnas = arquitecturaRed[i + 1];
+        W[i].resize(filas); // cada fila representa una neurona en la capa i
+        for (int j = 0; j < filas; ++j) {
+            W[i][j].resize(columnas); // pesos hacia cada neurona en la siguiente capa
+
+            for (int k = 0; k < columnas; ++k)
+                W[i][j][k] = ((double)rand() / RAND_MAX) * 0.1 - 0.05; // entre -0.05 y 0.05
+        }
     }
 }
+
 
 /*
  * Diligencia por primera vez las matrices de pesos de la red, se diligencian con valores aleatoreos
@@ -129,8 +147,9 @@ void RedNeuronal::PreDiligenciarW()
     for(int k=0; k<this->num_Matriz_W; k++) // matriz
         for(int i=0; i<arquitecturaRed[k]; i++) //fila
             for(int j=0; j<arquitecturaRed[k+1]; j++) //columna
-                this->W[k][i][j] = (double)rand()/RAND_MAX;
+                //this->W[k][i][j] = (double)rand()/RAND_MAX;
                 //this->W[k][i][j] = 0.0;//(double)(rand() % 10);//RAND_MAX;
+                this->W[k][i][j] = ((double)rand() / RAND_MAX) * 0.1 - 0.05; // entre -0.05 y 0.05
 
 
     //W[0][0][0] = 0.15;
@@ -148,52 +167,80 @@ void RedNeuronal::PreDiligenciarW()
 
     //W[1][0][0] = 0.4;  W[1][0][1] = 0.5;
     //W[1][1][0] = 0.45; W[1][1][1] = 0.55;
-
-
 }
 
 /*
  * crea un puntero a una matriz que almacenará las salidas de las neuronas de la red
  */
+//void RedNeuronal::crearMatriz_a()
+//{
+//    //Reserva de memoria para las salidas, contempla la capa entrada y salida
+//    a =  new double*[this->numCapas];
+//    for (int i = 0; i < this->numCapas; i++)
+//        this->a[i] = new double[this->arquitecturaRed[i]];
+//
+//    //Reserva de memoria para las salidas, contempla la capa entrada y salida
+//    f =  new double*[this->numCapas];
+//    for (int i = 0; i < this->numCapas; i++)
+//        this->f[i] = new double[this->arquitecturaRed[i]];
+//}
 void RedNeuronal::crearMatriz_a()
 {
-    //Reserva de memoria para las salidas, contempla la capa entrada y salida
-    a =  new double*[this->numCapas];
-    for (int i = 0; i < this->numCapas; i++)
-        this->a[i] = new double[this->arquitecturaRed[i]];
+    a.resize(this->numCapas);
+    f.resize(this->numCapas);
 
-    //Reserva de memoria para las salidas, contempla la capa entrada y salida
-    f =  new double*[this->numCapas];
-    for (int i = 0; i < this->numCapas; i++)
-        this->f[i] = new double[this->arquitecturaRed[i]];
+    for (int i = 0; i < this->numCapas; ++i) {
+        a[i].resize(this->arquitecturaRed[i], 0.0); // inicializa con 0.0
+        f[i].resize(this->arquitecturaRed[i], 0.0);
+    }
 }
+
 
 /*
  * crea un puntero a un arreglo que almacena los sesgos de la red
  */
 void RedNeuronal::crearArrayB()
 {
-    this->b = new double[numCapas-1];
+    //this->b = new double[numCapas-1];
+    //b.resize(numCapas - 1, 0.0);
+
+    b.resize(numCapas - 1);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dist(0.0, 1.0);
+
+    for (int i = 0; i < numCapas - 1; i++)
+        b[i] = dist(gen);
 }
 
 /*
  * Diligencia el arreglo de sesgos con valores aleatoreos. El diligenciamiento de la primera vez
  */
-void RedNeuronal::PrediligenciarB()
-{
-    for (int i=0;i<numCapas-1;i++)
-        this->b[i]=(double)rand()/RAND_MAX;
-
-    //b[0] = 0.35;
-    //b[1] = 0.6;
-}
+//void RedNeuronal::PrediligenciarB()
+//{
+//    for (int i=0;i<numCapas-1;i++)
+//        this->b[i]=(double)rand()/RAND_MAX;
+//
+//    //b[0] = 0.35;
+//    //b[1] = 0.6;
+//}
+//void RedNeuronal::PrediligenciarB()
+//{
+//    std::random_device rd;
+//    std::mt19937 gen(rd());
+//    std::uniform_real_distribution<> dist(0.0, 1.0);
+//
+//    for (int i = 0; i < numCapas - 1; i++)
+//        b[i] = dist(gen);
+//}
 
 /*
  * Muestra los valores almacenados en el vector de sesgos b
  */
 void RedNeuronal::Mostrar_b()
 {
-    for(int i =0; i<numCapas-1;i++)
+    for(int i =0; i<this->b.size();i++)
         std::cout<<b[i]<<" ";
     std::cout<<std::endl;
 }
@@ -243,6 +290,7 @@ void RedNeuronal::Prediccion(double* X)
     ////inicia la capa a0 con X
     for(int i=0; i< arquitecturaRed[0]; i++)
         a[0][i]=X[i];
+
 
     propagacion_Adelante();
 }
@@ -414,74 +462,67 @@ void RedNeuronal::Entrenamiento(double** entradaRed, double **salidaRed, int can
  * Entrenala red mediante retropropagación y actualiza los pesos y sesgos.
  * Se encuentra entrenando con datos en un archivo de entrada y uno de salida
  */
-void RedNeuronal::Entrenamiento2(double** entradaRed, double **salidaRed, int cantidadDatos, double alpha, int iteraciones)
+void RedNeuronal::Entrenamiento2(std::vector<std::vector<double>>&  entradaRed,
+                                 std::vector<std::vector<double>>& salidaRed,
+                                 double alpha,
+                                 int iteraciones)
 {
     double Error_total = 0;
-    int p=0;
-    int datos_i=0;
     double sum_delta = 0;
 
     PrediligenciarEntrenamiento();
 
-    // Inicializar la capa de entrada con los valores de entrada
-    for (int i=0; i< arquitecturaRed[0];i++)
-        a[0][i] = entradaRed[datos_i][i];
-    // Propaga hacia adelante para calcular la salida en la última capa
-    propagacion_Adelante();
-    // Calcular el error de la última capa
-    for (int i=0; i<arquitecturaRed[numCapas-1]; i++){
-        E[i] = (a[numCapas-1][i]-salidaRed[i][datos_i]);
-        Error_total += 0.5*E[i]*E[i];
-        delta[num_Matriz_W-1][i] = der_sigmoide(a[numCapas-1][i])*E[i]; //delta L
-    }
-    while( p < iteraciones*cantidadDatos ){
-        //Diligenciar delta con la sumatoria
-        for( int k=numCapas-2; k>0; k--)
-            for(int i=0; i<arquitecturaRed[k]; i++){
-                for( int j=0; j<arquitecturaRed[k+1];j++){
-                    delta[k-1][i] += der_relu(a[k][i])*delta[k][j]*W[k][i][j];
+    for (int epoca = 0; epoca < iteraciones; ++epoca) {
+        Error_total = 0;
+        for (size_t i = 0; i < entradaRed.size(); ++i) {
+            //const std::vector<double>& vectorImagenTest = entradaRed[i];
+            const std::vector<double>& etiqueta = salidaRed[i];
+            // Inicializar la capa de entrada con los valores de entrada
+            //std::memcpy(a[0], entradaRed[i].data(), arquitecturaRed[0] * sizeof(double));
+            if (a[0].size() != entradaRed[i].size())
+                a[0].resize(entradaRed[i].size());
+            a[0] = entradaRed[i];            // Propaga hacia adelante para calcular la salida en la última capa
+
+            propagacion_Adelante();
+
+                // Calcular el error de la última capa
+            for (int i=0; i<arquitecturaRed[numCapas-1]; i++){
+                //std::cout<<salidaRed[i][datos_i]<<std::endl;
+                E[i] = a[numCapas-1][i]-etiqueta[i];
+                Error_total += 0.5*E[i]*E[i];
+                delta[num_Matriz_W-1][i] = der_relu(a[numCapas-1][i])*E[i]; //delta L
+            }
+
+            //Diligenciar delta con la sumatoria
+            for( int k=numCapas-2; k>0; k--)
+                for(int i=0; i<arquitecturaRed[k]; i++){
+                    for( int j=0; j<arquitecturaRed[k+1];j++){
+                        delta[k-1][i] += der_relu(a[k][i])*delta[k][j]*W[k][i][j];
+                    }
                 }
-            }
-        //Actualizar Pesos y bias
-        for (int k=0; k<num_Matriz_W; k++){
-            for(int i=0; i<arquitecturaRed[k+1]; i++){//filas
-                for( int j=0; j<arquitecturaRed[k];j++){ // columnas
-                    W[k][j][i] = W[k][j][i] - alpha*(a[k][j])*(delta[k][i]);
+            //Actualizar Pesos y bias
+            for (int k=0; k<num_Matriz_W; k++){
+                for(int i=0; i<arquitecturaRed[k+1]; i++){//filas
+                    for( int j=0; j<arquitecturaRed[k];j++){ // columnas
+                        W[k][j][i] = W[k][j][i] - alpha*(a[k][j])*(delta[k][i]);
+                    }
+                    sum_delta += delta[k][i];
                 }
-                sum_delta += delta[k][i];
+                b[k] = b[k] - alpha*sum_delta;
+                sum_delta = 0;
             }
-            b[k] = b[k] - alpha*sum_delta;
-            sum_delta = 0;
+            //reiniciar delta
+            for(int k=0; k<num_Matriz_W; k++)
+                for(int i=0; i<arquitecturaRed[k+1]; i++){
+                    delta[k][i]=0;
+                }
         }
-        //reiniciar delta
-        for(int k=0; k<num_Matriz_W; k++)
-            for(int i=0; i<arquitecturaRed[k+1]; i++){
-                delta[k][i]=0;
-            }
-        // Inicializar la capa de entrada con los valores de entrada
-        for (int i=0; i<arquitecturaRed[0]; i++){
-            a[0][i] = entradaRed[datos_i][i];
-        }
-        // Propaga hacia adelante para calcular la salida en la última capa
-        propagacion_Adelante();
-        // Calcular el error de la última capa
-        Error_total=0;
-        for (int i=0; i<arquitecturaRed[numCapas-1]; i++){
-            E[i] = (a[numCapas-1][i]-salidaRed[datos_i][i]);
-            Error_total += 0.5*E[i]*E[i];
-            delta[num_Matriz_W-1][i] = der_sigmoide(a[numCapas-1][i])*E[i]; //delta L
-        }
-        // Mueve
-        if (p%cantidadDatos == 0){
-            datos_i++;
-            if (datos_i>cantidadDatos-1)
-                datos_i=0;
-        }
-        p++;
+        std::cout << "Época: " << epoca << " Error total: " << Error_total << std::endl;
     }
-    std::cout<<"Entremaniento finalizado. Se realizaron "<<p<<" iteraciones. Error total: "<<Error_total<<std::endl;
+    std::cout<<"Entremaniento finalizado. Se realizaron "<<iteraciones*entradaRed.size()<<" iteraciones. Error total: "<<Error_total<<std::endl;
     std::cout<<std::endl;
 }
+
 
 /*
  * Prediligencia los valores del vector de error y los deltas para la retropopagación.
@@ -594,56 +635,39 @@ void RedNeuronal::cargarRed(std::string rutaPesos)
 /*
  * Lee archivos de datos de variable independiente y dependiente y los guarda en matris X y puntero Y
  */
-void RedNeuronal::LeerDatosEntrenamiento(std::string rutaX,
-                                         std::string rutaY,
-                                         double **X, double **Y)
+
+void RedNeuronal::LeerDatosEntrenamiento(   std::string rutaDatos,
+                                            std::vector<std::vector<double>>& X,
+                                            std::vector<std::vector<double>>& Y)
 {
-    // Create an input filestream
-    std::ifstream File_X(rutaX);
-    std::ifstream File_Y(rutaY);
-    //int i = 0;
 
-    // Make sure the file is open
-    if(!File_X.is_open()) throw std::runtime_error("Could not open file");
-    // Make sure the file is open
-    if(!File_Y.is_open()) throw std::runtime_error("Could not open file");
+    std::ifstream archivo(rutaDatos);
+    std::string linea;
 
-    std::string line_X, line_Y;
-    size_t pos_x = 0, pos_y = 0;
-    int fila_x=0,col_x=0;
-    int col_y=0;
+    while (std::getline(archivo, linea)) {
+        std::stringstream ss(linea);
+        std::string valor;
+        std::vector<double> fila;
 
-    // Leer datos de X
-    while ( getline(File_X, line_X) ){
-        while (line_X.find(',') != std::string::npos) {
-            pos_x = line_X.find(',');
-            X[fila_x][col_x] = std::stod(line_X.substr(0, pos_x));
-            line_X.erase(0, pos_x + 1);
-            //std::cout<<fila_x<<" "<<col_x<<": "<<X[fila_x][col_x]<<std::endl;
-            col_x++;
+        while (std::getline(ss, valor, ',')) {
+            if (!valor.empty())
+                fila.push_back(std::stod(valor));
         }
-        col_x=0;
-        fila_x++;
-        //std::cout<<std::endl;
+
+        // Suponiendo que la salida es el último valor
+        std::vector<double> entrada(fila.begin(), fila.end() - 1);
+        std::vector<double> salida(1, fila.back());
+
+        X.push_back(entrada);
+        Y.push_back(salida);
     }
 
-
-    while(getline(File_Y, line_Y)){
-        pos_y = line_Y.find(',');
-        Y[col_y][0] = std::stod(line_Y.substr(0, pos_y));
-        //std::cout<<col_y<<" = "<<std::stod(line_Y.substr(0, pos_y))<<std::endl;
-        col_y++;
-        //i++;
-    }
-
-    File_X.close();
-    File_Y.close();
+    archivo.close();
 }
 
 
-void RedNeuronal::LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY, std::vector<cv::Mat> *X, double **Y)
+void RedNeuronal::LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY, std::vector<std::vector<double>>& X,  std::vector<std::vector<double>>& Y)
 {
-    std::vector<double> array;
     cv::Mat IMAGENchica;
     std::string line;
     std::string ruta;
@@ -657,7 +681,6 @@ void RedNeuronal::LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY
                             "<ymin>","</ymin>",
                             "<xmax>","</xmax>",
                             "<ymax>","</ymax>"};
-    int j=0;
     int pos1=0;
     int pos2=0;
 
@@ -677,19 +700,19 @@ void RedNeuronal::LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY
                     switch(i){
                     case 0:
                         //std::cout<<"Ruta img: "<<rutaY<<line.substr(pos1+10,pos2-11)<<std::endl;
-                        datos[j].ruta = rutaX+line.substr(pos1+10,pos2-11);
+                        datos.ruta = rutaX+line.substr(pos1+10,pos2-11);
                         break;
                     case 1:
                         //std::cout<<"width: "<<line.substr(pos1+7,pos2-9)<<std::endl;
-                        datos[j].width = stoi(line.substr(pos1+7,pos2-9));
+                        datos.width = stoi(line.substr(pos1+7,pos2-9));
                         break;
                     case 2:
                         //std::cout<<"height: "<<line.substr(pos1+8,pos2-10)<<std::endl;
-                        datos[j].height = stoi(line.substr(pos1+8,pos2-10));
+                        datos.height = stoi(line.substr(pos1+8,pos2-10));
                         break;
                     case 3:
                         //std::cout<<"depth: "<<line.substr(pos1+7,pos2-9)<<std::endl;
-                        datos[j].depth = stoi(line.substr(pos1+7,pos2-9));
+                        datos.depth = stoi(line.substr(pos1+7,pos2-9));
                         break;
                     default:
                         std::cout<<"error no encontró"<<std::endl;
@@ -704,27 +727,27 @@ void RedNeuronal::LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY
                     switch(i){
                     case 0:
                         //std::cout<<"name: "<<line.substr(pos1+6,pos2-8)<<std::endl;
-                        datos[j].clase = line.substr(pos1+6,pos2-8);
+                        datos.clase = line.substr(pos1+6,pos2-8);
                         break;
                     case 1:
                         //std::cout<<"xmin: "<<line.substr(pos1+6,pos2-9)<<std::endl;
-                        datos[j].xMin = stoi(line.substr(pos1+6,pos2-9));
-                        datos[j].xminAbs = (double)datos[j].xMin/(double)datos[j].width;
+                        datos.xMin = stoi(line.substr(pos1+6,pos2-9));
+                        datos.xminAbs = (double)datos.xMin/(double)datos.width;
                         break;
                     case 2:
                         //std::cout<<"ymin: "<<line.substr(pos1+6,pos2-9)<<std::endl;
-                        datos[j].yMin = stoi(line.substr(pos1+6,pos2-9));
-                        datos[j].yminAbs = (double)datos[j].yMin/(double)datos[j].height;
+                        datos.yMin = stoi(line.substr(pos1+6,pos2-9));
+                        datos.yminAbs = (double)datos.yMin/(double)datos.height;
                         break;
                     case 3:
                         //std::cout<<"xmax: "<<line.substr(pos1+6,pos2-9)<<std::endl;
-                        datos[j].xMax = stoi(line.substr(pos1+6,pos2-9));
-                        datos[j].xmaxAbs = (double)datos[j].xMax/(double)datos[j].width;
+                        datos.xMax = stoi(line.substr(pos1+6,pos2-9));
+                        datos.xmaxAbs = (double)datos.xMax/(double)datos.width;
                         break;
                     case 4:
                         //std::cout<<"ymax: "<<line.substr(pos1+6,pos2-9)<<std::endl;
-                        datos[j].yMax = stoi(line.substr(pos1+6,pos2-9));
-                        datos[j].ymaxAbs = (double)datos[j].yMax/(double)datos[j].height;
+                        datos.yMax = stoi(line.substr(pos1+6,pos2-9));
+                        datos.ymaxAbs = (double)datos.yMax/(double)datos.height;
                         break;
                     default:
                         std::cout<<"error no encontró"<<std::endl;
@@ -732,107 +755,15 @@ void RedNeuronal::LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY
                 }
             }
         }
-
-        cv::Mat IMAGENchica;
-        cv::Mat image = cv::imread(datos[j].ruta,CV_8SC3);   // Read the file
-        cv::resize(image, IMAGENchica, cv::Size(250,250));
-
-        //cv::namedWindow("cvmat", cv::WINDOW_AUTOSIZE );// Create a window for display.
-        //cv::imshow("cvmat", IMAGENchica);
-        //cv::waitKey(0);
-
-        // flatten the mat.
-        //uint totalElements = IMAGENchica.total()*IMAGENchica.channels(); // Note: image.total() == rows*cols.
-        //uint totalElements = IMAGENchica.total()*IMAGENchica.channels(); // Note: image.total() == rows*cols.
-        //cv::Mat flat = IMAGENchica.reshape(1, totalElements); // 1xN mat of 1 channel, O(1) operation
-        //if(!IMAGENchica.isContinuous()) {
-        //    flat = flat.clone(); // O(N),
-        //}
-        //// flat.data is your array pointer
-        //auto *ptr = flat.data; // usually, its uchar*
-        // You have your array, its length is flat.total() [rows=1, cols=totalElement
-        // Testing by reconstruction of cvMat
-        //cv::Mat restored = cv::Mat(IMAGENchica.rows, IMAGENchica.cols, CV_8SC3, ptr);
-        //cv::namedWindow("reconstructed", cv::WINDOW_AUTOSIZE);
-        //cv::imshow("reconstructed", restored);
-        //cv::waitKey(0);
-
-        //std::cout<<totalElements<<std::endl;
-        //std::cout<<IMAGENchica.rows<<std::endl;
-        //std::cout<<IMAGENchica.cols<<std::endl;
-        //std::cout<<IMAGENchica.channels()<<std::endl;
-
-
-
-        Y[0][j] = datos[j].xminAbs;
-        Y[1][j] = datos[j].yminAbs;
-        Y[2][j] = datos[j].xmaxAbs;
-        Y[3][j] = datos[j].ymaxAbs;
-        //X[j] = &IMAGENchica;
-        X->push_back(IMAGENchica);
-
-        //std::cout<<IMAGENchica.rows<<" "<<IMAGENchica.cols<<" "<<IMAGENchica.type()<<" "<< &ptr<<std::endl;
-
-        //cv::Mat restored = cv::Mat(250, 250, CV_8UC3, *(X+j)); // OR vec.data() instead of ptr
-        //cv::Rect rect(Y[0][j]*250,Y[1][j]*250,(Y[2][j]-Y[0][j])*250,(Y[3][j]-Y[1][j])*250);
-        //cv::rectangle(*X[j],rect,cv::Scalar(0, 255, 0));
-        //cv::namedWindow("reconstructed", cv::WINDOW_AUTOSIZE);
-        //cv::imshow("reconstructed", *X[j]);
-        //cv::waitKey(0);
-
-        j++;
+        cv::Mat image = cv::imread(datos.ruta,cv::IMREAD_GRAYSCALE);   // Read the file
+        if (image.empty()) continue;
+        cv::resize(image, image, cv::Size(128,128));
+        image.convertTo(image, CV_64F);
+        cv::Mat plano = image.reshape(1, 1);
+        std::vector<double> vectorImagen(plano.ptr<double>(), plano.ptr<double>() + plano.cols*plano.rows);
+        X.push_back(vectorImagen);
+        Y.push_back({ datos.xminAbs, datos.yminAbs, datos.xmaxAbs, datos.ymaxAbs });
     }
-
-    //for(auto i:X){
-    //cv::namedWindow("reconstructed", cv::WINDOW_AUTOSIZE);//imprimir los valores cargados de las imagenes i recorre las imagenes y j los datos de las imagenes
-    //cv::imshow("reconstructed", i);//for (int i=0; i< 4; i++){
-    //cv::waitKey(0);//    std::cout<<"*************************************************"<<std::endl<<std::endl;
-    //}
-
-    //    for(int j=0; j<250*250*3;j++){
-    //        std::cout<<j<<": "<<X[i][j]<<" "; //i=imagen j=datos de la imagen
-    //    }
-    //}
-
-    // con i recorreo las imagenes, con j recorre las caracteristicas de cada imagen
-    //for (int i=0; i< 4; i++){
-    //    std::cout<<i<<" *************************************************"<<std::endl<<std::endl;
-    //    for(int j=0; j<4;j++){
-    //        std::cout<<j<<": "<<Y[j][i]<<" "; //i=imagen j=datos de la imagen
-    //    }
-    //}
-
-
-
-    //for(int i=0;i<j;i++){
-    //    std::cout<<"##### "<<i<<" #####"<<std::endl;
-    //    std::cout<<datos[i].ruta<<std::endl;
-    //    std::cout<<datos[i].width<<std::endl;
-    //    std::cout<<datos[i].height<<std::endl;
-    //    std::cout<<datos[i].depth<<std::endl;
-    //    std::cout<<datos[i].clase<<std::endl;
-    //    std::cout<<datos[i].xMin<<std::endl;
-    //    std::cout<<datos[i].yMin<<std::endl;
-    //    std::cout<<datos[i].xMax<<std::endl;
-    //    std::cout<<datos[i].yMax<<std::endl;
-    //    std::cout<<datos[i].xminAbs<<std::endl;
-    //    std::cout<<datos[i].yminAbs<<std::endl;
-    //    std::cout<<datos[i].xmaxAbs<<std::endl;
-    //    std::cout<<datos[i].ymaxAbs<<std::endl;
-    //}
-
-    //for(int j=0;j<4;j++){
-    //    cv::Mat restored = cv::Mat(IMAGENchica.rows, IMAGENchica.cols, IMAGENchica.type(), ptr); // OR vec.data() instead of ptr
-    //    cv::Rect rect(Y[0][j]*250,Y[1][j]*250,(Y[2][j]-Y[0][j])*250,(Y[3][j]-Y[1][j])*250);
-    //    cv::rectangle(restored,rect,cv::Scalar(0, 255, 0));
-    //    cv::namedWindow("reconstructed", cv::WINDOW_AUTOSIZE);
-    //    cv::imshow("reconstructed", restored);
-    //    cv::waitKey(0);
-    //}
-
-
-
-
 }
 
 void RedNeuronal::Borrar_a()
