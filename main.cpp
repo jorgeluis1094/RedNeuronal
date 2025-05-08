@@ -49,7 +49,7 @@ int main()
                                  y);
 
     //Parametriza el entrenamiento dando los datos de entrada y salida. Se parametriza el paso de entrenamiento y la cantidad de epocas
-    red->Entrenamiento2(x,y,0.1,100);
+    red->Entrenamiento2(x,y,0.1,150);
 
     // La red entrenada del ejemplo se realizó para simular una compuesta OR entonces se validan los casos
     double test[2];
