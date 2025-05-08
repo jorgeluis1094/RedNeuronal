@@ -1,6 +1,7 @@
 /**
- * Version: 0.1
- * Fecha: 21/09/2024
+ *  *
+ * Version: 0.2
+ * Fecha: 7/05/2025
  *
  * Esta libreria permite la creación de una red neuronal multicapa, se debe especificar la arquitectura con el
  * el número de capas que tiene la red y la cantidad de neuronas por capa. La libreria permite:
@@ -59,41 +60,14 @@ RedNeuronal::RedNeuronal(std::string string_arqRed, std::string pesosRed, std::s
 {
     std::ifstream ReadmyFile;
     ////Si no lee correctamente el archivo informa de un error
-    //if(!ReadmyFile.is_open()) throw std::runtime_error("Could not open file");
+    if(!ReadmyFile.is_open()) throw std::runtime_error("Could not open file");
+
     std::string line;
-    //int numCapas=0;
-    //if(ReadmyFile.good()){
-    //    // Read data, line by line
-    //    while(getline(ReadmyFile, line,',')){
-    //        numCapas++;
-    //    }
-    //}
-    //ReadmyFile.close();
-
-    //ReadmyFile.open(string_arqRed);
-    //int *arqRed = new int[numCapas];
-    //int i=0;
-    //while(getline(ReadmyFile, line,',')){
-    //    *(arqRed+i) = stoi(line);
-    //    i++;
-    //    //std::cout<<line<<" ";
-    //}
-    //ReadmyFile.close();
-
-    ReadmyFile.open(string_arqRed);
+        ReadmyFile.open(string_arqRed);
     while (getline(ReadmyFile, line, ',')) {
         arquitecturaRed.push_back(std::stoi(line));
     }
     ReadmyFile.close();
-
-    //ReadmyFile.open(string_biasRed);
-    //double *biasRed = new double[numCapas-1];
-    //i=0;
-    //while(getline(ReadmyFile, line,',')){
-    //    *(biasRed+i) = stod(line);
-    //    i++;
-    //}
-    //ReadmyFile.close();
 
     ReadmyFile.open(string_biasRed);
     while (getline(ReadmyFile, line, ',')) {
@@ -101,21 +75,14 @@ RedNeuronal::RedNeuronal(std::string string_arqRed, std::string pesosRed, std::s
     }
     ReadmyFile.close();
 
-    //this->arquitecturaRed = arqRed;
     this->numCapas = this->b.size();
     this->num_Matriz_W = this->numCapas - 1;
 
-
-//
     crearMatrizW();
-//    PreDiligenciarW(); //Pesos W
     crearArrayB();
-//    //PrediligenciarB(); //bias
     crearMatriz_a();
-//    //PreDiligenciar_a(); //asignar memoria pasa matriz a
-//
     cargarRed(pesosRed);
-    //this->b = biasRed;
+
 }
 
 void RedNeuronal::crearMatrizW()
@@ -150,40 +117,11 @@ void RedNeuronal::PreDiligenciarW()
                 //this->W[k][i][j] = (double)rand()/RAND_MAX;
                 //this->W[k][i][j] = 0.0;//(double)(rand() % 10);//RAND_MAX;
                 this->W[k][i][j] = ((double)rand() / RAND_MAX) * 0.1 - 0.05; // entre -0.05 y 0.05
-
-
-    //W[0][0][0] = 0.15;
-    //W[0][1][0] = 0.2;
-    //W[0][0][1] = 0.25;
-    //W[0][1][1] = 0.3;
-    //W[1][0][0] = 0.4;
-    //W[1][1][0] = 0.45;
-    //W[1][0][1] = 0.5;
-    //W[1][1][1] = 0.55;
-
-    //W[0][0][0] = 0.15; W[0][0][1] = 0.25;
-    //W[0][1][0] = 0.2;  W[0][1][1] = 0.3;
-
-
-    //W[1][0][0] = 0.4;  W[1][0][1] = 0.5;
-    //W[1][1][0] = 0.45; W[1][1][1] = 0.55;
 }
 
 /*
- * crea un puntero a una matriz que almacenará las salidas de las neuronas de la red
+ * crea una matriz "a" que almacena las salidas de las neuronas de la red y una matriz "f" que almacena las salidas pero de la retropopagación
  */
-//void RedNeuronal::crearMatriz_a()
-//{
-//    //Reserva de memoria para las salidas, contempla la capa entrada y salida
-//    a =  new double*[this->numCapas];
-//    for (int i = 0; i < this->numCapas; i++)
-//        this->a[i] = new double[this->arquitecturaRed[i]];
-//
-//    //Reserva de memoria para las salidas, contempla la capa entrada y salida
-//    f =  new double*[this->numCapas];
-//    for (int i = 0; i < this->numCapas; i++)
-//        this->f[i] = new double[this->arquitecturaRed[i]];
-//}
 void RedNeuronal::crearMatriz_a()
 {
     a.resize(this->numCapas);
@@ -197,12 +135,10 @@ void RedNeuronal::crearMatriz_a()
 
 
 /*
- * crea un puntero a un arreglo que almacena los sesgos de la red
+ * crea un vector "b" que almacena los sesgos de la red, también inicializa
  */
 void RedNeuronal::crearArrayB()
 {
-    //this->b = new double[numCapas-1];
-    //b.resize(numCapas - 1, 0.0);
 
     b.resize(numCapas - 1);
 
@@ -213,27 +149,6 @@ void RedNeuronal::crearArrayB()
     for (int i = 0; i < numCapas - 1; i++)
         b[i] = dist(gen);
 }
-
-/*
- * Diligencia el arreglo de sesgos con valores aleatoreos. El diligenciamiento de la primera vez
- */
-//void RedNeuronal::PrediligenciarB()
-//{
-//    for (int i=0;i<numCapas-1;i++)
-//        this->b[i]=(double)rand()/RAND_MAX;
-//
-//    //b[0] = 0.35;
-//    //b[1] = 0.6;
-//}
-//void RedNeuronal::PrediligenciarB()
-//{
-//    std::random_device rd;
-//    std::mt19937 gen(rd());
-//    std::uniform_real_distribution<> dist(0.0, 1.0);
-//
-//    for (int i = 0; i < numCapas - 1; i++)
-//        b[i] = dist(gen);
-//}
 
 /*
  * Muestra los valores almacenados en el vector de sesgos b
@@ -266,7 +181,6 @@ void RedNeuronal::Mostrar_Pesos_Red()
  */
 void RedNeuronal::Mostrar_a_Red()
 {
-    // visualización de a
     for(int i=0; i<this->numCapas; i++)
     {
         for (int j=0; j<this->arquitecturaRed[i]; j++)
@@ -277,7 +191,7 @@ void RedNeuronal::Mostrar_a_Red()
 
 /*
  * Realiza una predicción para un vector de entrada mediante propagación hacia adelante,
- * la salida lo almacena en la última capa de la matriz de a
+ * la salida lo almacena en la última capa de la matriz de "a"
  */
 void RedNeuronal::Prediccion(double* X)
 {
@@ -287,7 +201,7 @@ void RedNeuronal::Prediccion(double* X)
         for (int j=0; j<this->arquitecturaRed[i]; j++)
             a[i][j]=0;
 
-    ////inicia la capa a0 con X
+    ////inicia la capa a0 con la entrada X
     for(int i=0; i< arquitecturaRed[0]; i++)
         a[0][i]=X[i];
 
@@ -326,16 +240,11 @@ void RedNeuronal::propagacion_Adelante()
 }
 
 /*
- * Función sigmoide, resice un valor y retorna la salida de la función sigmoide según la entrada
+ * Función sigmoide, recibe un valor y retorna la salida de la función sigmoide según la entrada
  */
 double RedNeuronal::logistic_Func(double net)
 {
     return 1/(1+std::exp(-net));
-    //if (net>0){
-    //    return net;
-    //}
-    //return 0;
-    //return (exp(net)-exp(-net))/(exp(net)+exp(-net));
 }
 
 /*
@@ -343,31 +252,27 @@ double RedNeuronal::logistic_Func(double net)
  */
 double RedNeuronal::derivada(double valor)
 {
-    //return valor*(1-valor);
-
-    //if (valor>0){
-    //    return 1;
-    //}
-    //return 0;
-
     return logistic_Func(valor)*(1-logistic_Func(valor));
-    //return (1-((exp(valor)-exp(-valor))/(exp(valor)+exp(-valor)))*((exp(valor)-exp(-valor))/(exp(valor)+exp(-valor))));
 }
 
+/*
+ * Función sigmoide, recibe un valor y retorna la salida de la función sigmoide según la entrada
+ */
 double RedNeuronal::sigmoide(double net)
 {
     return 1/(1+std::exp(-net));
-    //if (net>0){
-    //    return net;
-    //}
-    //return 0;
-    //return (exp(net)-exp(-net))/(exp(net)+exp(-net));
 }
 
+/*
+ * Aplica la derivada de la gunción sigmoide para la retropropagación
+ */
 double RedNeuronal::der_sigmoide(double valor){
     return sigmoide(valor)*(1-sigmoide(valor));
 }
 
+/*
+ * Función relu, recibe un valor y retorna la salida de la función relu según la entrada
+ */
 double RedNeuronal::relu(double net){
 
     if (net>0)
@@ -376,6 +281,9 @@ double RedNeuronal::relu(double net){
         return 0;
 }
 
+/*
+ * Función der_relu, recibe un valor y retorna la salida de la derivada de la función relu según la entrada
+ */
 double RedNeuronal::der_relu(double net){
 
     if (net>0)
@@ -385,6 +293,7 @@ double RedNeuronal::der_relu(double net){
 }
 
 /*
+ *
  * Entrenala red medainte retropropagación y actualiza los pesos y sesgos.
  * Solo se encuentra entrenando con un dato de entrada y uno de salida, estos pueden
  * ser vectores, tanto el de entrada como el de salida
@@ -766,6 +675,10 @@ void RedNeuronal::LeerImagenesEntrenamiento(std::string rutaX, std::string rutaY
     }
 }
 
+/*
+ * Función Borrar_a, dedicada a borrar los datos de la matriz que almacena la salida de cada neurona
+ *
+*/
 void RedNeuronal::Borrar_a()
 {
     // borrar  a

@@ -8,17 +8,15 @@ class RedNeuronal
 {
 public:
 
-    // variables
-    //double ***W;            //Putero a matrices de pesos de la red, apunta a las diferentes matrices entre capas
+    // matrices de pesos de la red, apunta a las diferentes matrices entre capas
     std::vector<std::vector<std::vector<double>>> W;
-    //int *arquitecturaRed;   // arreglo que describe la red, cantidad de capas y neuronas por capas
+    // arreglo que describe la red, cantidad de capas y neuronas por capas
     std::vector<int> arquitecturaRed;
-    //double **a;             // matriz que presenta las salidas de cada red
+    // matriz que presenta las salidas de cada red
     std::vector<std::vector<double>> a;
-
-    //double **f;             // matriz que presenta las salidas de cada red
-     std::vector<std::vector<double>> f;
-
+    // matriz que presenta las salidas de cada red
+    std::vector<std::vector<double>> f;
+    // estructura para guardar los datos de una imagen etiquetada
     struct dataImg{
         std::string ruta = "";
         int width = 1;
@@ -34,9 +32,6 @@ public:
         double xmaxAbs = 0;
         double ymaxAbs = 0;
     } datos;
-    //dataImg datos[2079];
-
-
 
     // constructores
     RedNeuronal(std::vector<int> arquitecturaRed, int numCapas);               // constructor a partir de archivos txt de arquitectura y pesoss de una red
